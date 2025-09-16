@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load widget_tweaks %}
+
+{% block title %}Apply for Leave{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0">Apply for Leave</h4>
+        </div>
+        <div class="card-body">
+          <form method="post" novalidate>
+            {% csrf_token %}
+
+            <!-- Leave Type -->
+            <div class="mb-3">
+              <label for="id_leave_type" class="form-label">Leave Type</label>
+              {{ form.leave_type|add_class:"form-select" }}
+              {% if form.leave_type.errors %}
+                <div class="text-danger small mt-1">
+                  {{ form.leave_type.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Start Date -->
+            <div class="mb-3">
+              <label for="id_start_date" class="form-label">Start Date</label>
+              {{ form.start_date|add_class:"form-control" }}
+              {% if form.start_date.errors %}
+                <div class="text-danger small mt-1">
+                  {{ form.start_date.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- End Date -->
+            <div class="mb-3">
+              <label for="id_end_date" class="form-label">End Date</label>
+              {{ form.end_date|add_class:"form-control" }}
+              {% if form.end_date.errors %}
+                <div class="text-danger small mt-1">
+                  {{ form.end_date.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Reason -->
+            <div class="mb-3">
+              <label for="id_reason" class="form-label">Reason</label>
+              {{ form.reason|add_class:"form-control" }}
+              {% if form.reason.errors %}
+                <div class="text-danger small mt-1">
+                  {{ form.reason.errors }}
+                </div>
+              {% endif %}
+            </div>
+
+            <!-- Buttons -->
+            <button type="submit" class="btn btn-success">Submit</button>
+            <a href="{% url 'leave_list' %}" class="btn btn-secondary">Cancel</a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

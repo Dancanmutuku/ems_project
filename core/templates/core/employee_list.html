@@ -1,0 +1,18 @@
+{% extends 'core/base.html' %}
+{% block title %}Employees{% endblock %}
+{% block content %}
+<h1>Employees</h1>
+<table>
+  <thead><tr><th>Name</th><th>Job Title</th><th>Department</th><th>Salary</th></tr></thead>
+  <tbody>
+    {% for e in employees %}
+    <tr>
+      <td>{{ e.user.get_full_name }} ({{ e.user.username }})</td>
+      <td>{{ e.job_title }}</td>
+      <td>{{ e.department }}</td>
+      <td>{{ e.salary }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

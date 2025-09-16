@@ -1,0 +1,10 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h2>Payslip for {{ payroll.period_start }} → {{ payroll.period_end }}</h2>
+<p>Gross Salary: {{ payroll.gross_salary }}</p>
+<p>NSSF: {{ payroll.nssf }}</p>
+<p>NHIF: {{ payroll.nhif }}</p>
+<p>PAYE: {{ payroll.paye }}</p>
+<p>Other deductions: {{ payroll.other_deductions }}</p>
+<h3>Net pay: {{ payroll.net_pay }}</h3>
+{% endblock %}

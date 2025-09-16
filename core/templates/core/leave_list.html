@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+  <h3 class="mb-4">Leave Requests</h3>
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Employee</th>
+          <th>Leave Type</th>
+          <th>Start Date</th>
+          <th>End Date</th>
+          <th>Status</th>
+          {% if is_hr_admin %}
+          <th>Actions</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for leave in leaves %}
+        <tr>
+          <td>{{ leave.employee.user.get_full_name|default:leave.employee.user.username }}</td>
+          <td>{{ leave.leave_type }}</td>
+          <td>{{ leave.start_date|date:"M d, Y" }}</td>
+          <td>{{ leave.end_date|date:"M d, Y" }}</td>
+          <td>
+            {% if leave.status == "P" %}
+              <span class="badge bg-warning text-dark">Pending</span>
+            {% elif leave.status == "A" %}
+              <span class="badge bg-success">Approved</span>
+            {% else %}
+              <span class="badge bg-danger">Rejected</span>
+            {% endif %}
+          </td>
+          {% if is_hr_admin %}
+          <td>
+            {% if leave.status == "P" %}
+              <a href="{% url 'leave_process' leave.pk 'approve' %}" class="btn btn-success btn-sm">Approve</a>
+              <a href="{% url 'leave_process' leave.pk 'reject' %}" class="btn btn-danger btn-sm">Reject</a>
+            {% else %}
+              <em class="text-muted">Processed</em>
+            {% endif %}
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="{% if is_hr_admin %}6{% else %}5{% endif %}" class="text-center text-muted">
+            No leave requests found.
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Monthly Attendance Report</h2>
+<table border="1">
+  <tr><th>Date</th><th>Status</th><th>Total</th></tr>
+  {% for row in data %}
+  <tr>
+    <td>{{ row.date }}</td>
+    <td>{{ row.status }}</td>
+    <td>{{ row.total }}</td>
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}

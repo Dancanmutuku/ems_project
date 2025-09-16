@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<h2 class="mb-4">Welcome, {{ employee.user.get_full_name|default:employee.user.username }}</h2>
+
+<div class="row">
+  <!-- Profile -->
+  <div class="col-md-4">
+    <div class="card shadow mb-4">
+      <div class="card-header bg-info text-white">My Profile</div>
+      <div class="card-body text-center">
+        <!-- Profile picture -->
+        {% if employee.profile_picture %}
+          <img src="{{ employee.profile_picture.url }}" class="img-thumbnail mb-3 rounded-circle" width="150" height="150" alt="Profile Picture">
+        {% else %}
+          <img src="https://via.placeholder.com/150" class="img-thumbnail mb-3 rounded-circle" alt="Default Profile">
+        {% endif %}
+
+        <h5>{{ employee.user.get_full_name|default:employee.user.username }}</h5>
+        <p class="text-muted">{{ employee.job_title }}</p>
+
+        <hr>
+        <p><strong>Employee ID:</strong> {{ employee.employee_id }}</p>
+        <p><strong>Email:</strong> {{ employee.user.email }}</p>
+        <p><strong>Contact:</strong> {{ employee.contact }}</p>
+        <p><strong>DOB:</strong> {{ employee.dob }}</p>
+        <p><strong>Gender:</strong> {{ employee.get_gender_display }}</p>
+        <p><strong>Address:</strong> {{ employee.address }}</p>
+        <p><strong>Department:</strong> {{ employee.department }}</p>
+        <p><strong>Hire Date:</strong> {{ employee.hire_date }}</p>
+        <p><strong>Salary:</strong> Ksh {{ employee.salary }}</p>
+        <p><strong>Status:</strong> 
+          {% if employee.is_active_employee %}
+            <span class="badge bg-success">Active</span>
+          {% else %}
+            <span class="badge bg-danger">Inactive</span>
+          {% endif %}
+        </p>
+        <p><strong>Emergency Contact:</strong> {{ employee.emergency_contact_name }} ({{ employee.emergency_contact_phone }})</p>
+        <p><strong>Leave Balance:</strong> Annual {{ employee.annual_leave_balance }} | Sick {{ employee.sick_leave_balance }}</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payrolls -->
+  <div class="col-md-8">
+    <div class="card shadow mb-4">
+      <div class="card-header bg-success text-white">Recent Payrolls</div>
+      <div class="card-body">
+        {% if payrolls %}
+          <table class="table table-striped">
+            <thead>
+              <tr><th>Period</th><th>Net Pay</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              {% for p in payrolls %}
+              <tr>
+                <td>{{ p.period_start }} - {{ p.period_end }}</td>
+                <td>Ksh {{ p.net_pay }}</td>
+                <td>
+                  {% if p.status|lower == "paid" %}
+                    <span class="badge bg-success">Paid</span>
+                  {% elif p.status|lower == "pending" %}
+                    <span class="badge bg-warning">Pending</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ p.status }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No payroll records yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+<div class="row">
+  <!-- Attendance -->
+  <div class="col-md-12">
+    <div class="card shadow mb-4">
+      <div class="card-header bg-primary text-white">My Attendance</div>
+      <div class="card-body">
+        {% if attendance_records %}
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for record in attendance_records %}
+              <tr>
+                <td>{{ record.date }}</td>
+                <td>{{ record.check_in|default:"--" }}</td>
+                <td>{{ record.check_out|default:"--" }}</td>
+                <td>
+                  {% if record.status == "Present" %}
+                    <span class="badge bg-success">Present</span>
+                  {% elif record.status == "Absent" %}
+                    <span class="badge bg-danger">Absent</span>
+                  {% elif record.status == "Leave" %}
+                    <span class="badge bg-warning">Leave</span>
+                  {% else %}
+                    <span class="badge bg-secondary">{{ record.status }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <p>No attendance records found.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <!-- Leave Requests -->
+  <div class="col-md-6">
+    <div class="card shadow mb-4">
+      <div class="card-header bg-warning d-flex justify-content-between align-items-center">
+        <span>My Leave Requests</span>
+        <span>
+          <a href="{% url 'leave_request_create' %}" class="btn btn-sm btn-primary">Apply</a>
+          <a href="{% url 'leave_list' %}" class="btn btn-sm btn-outline-dark">View All</a>
+        </span>
+      </div>
+      <div class="card-body">
+        {% if leaves %}
+          <ul class="list-group">
+            {% for leave in leaves %}
+              <li class="list-group-item">
+                {{ leave.leave_type }}: {{ leave.start_date }} → {{ leave.end_date }} 
+                <span class="badge bg-secondary float-end">{{ leave.get_status_display }}</span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No leave requests yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Notifications -->
+  <div class="col-md-6">
+    <div class="card shadow mb-4">
+      <div class="card-header bg-danger text-white">Notifications</div>
+      <div class="card-body">
+        {% if notifications %}
+          <ul class="list-group">
+            {% for n in notifications %}
+              <li class="list-group-item">{{ n.title }} <br><small>{{ n.created_at }}</small></li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No notifications yet.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

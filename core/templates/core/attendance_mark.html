@@ -1,0 +1,9 @@
+{% extends 'core/base.html' %}
+{% block content %}
+<h2>Mark Attendance ({{ attendance.date }})</h2>
+<p>Check-in: {{ attendance.check_in }} | Check-out: {{ attendance.check_out }}</p>
+<form method="post">{% csrf_token %}
+  <button name="action" value="checkin" type="submit">Check In</button>
+  <button name="action" value="checkout" type="submit">Check Out</button>
+</form>
+{% endblock %}
