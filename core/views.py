@@ -14,7 +14,8 @@ from django.contrib.auth.models import User
 from .models import Employee, Attendance, LeaveRequest, Payroll, Notification
 from .forms import LeaveRequestForm
 from .utils import calc_nssf, calc_nhif, calc_paye, group_required
-
+from .forms import AttendanceForm
+from .models import Attendance, Employee
 
 # ================================================================
 # Authentication
@@ -38,17 +39,37 @@ def employee_login(request):
 @login_required
 def employee_dashboard(request):
     employee = get_object_or_404(Employee, user=request.user)
+
+    # Payrolls
     payrolls = Payroll.objects.filter(employee=employee).order_by('-period_end')[:6]
+
+    # Leave Requests
     leaves = LeaveRequest.objects.filter(employee=employee).order_by('-requested_at')[:5]
+
+    # Notifications
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
 
-    return render(request, "core/employee_dashboard.html", {
+    # Attendance Records
+    attendance_records = Attendance.objects.filter(employee=employee).order_by('-date')[:10]  # last 10
+
+    # Attendance summary
+    total_present = Attendance.objects.filter(employee=employee, status="Present").count()
+    total_absent = Attendance.objects.filter(employee=employee, status="Absent").count()
+    total_leave = Attendance.objects.filter(employee=employee, status="Leave").count()
+
+    # Final context
+    context = {
         "employee": employee,
         "payrolls": payrolls,
         "leaves": leaves,
-        "notifications": notifications
-    })
+        "notifications": notifications,
+        "attendance_records": attendance_records,
+        "total_present": total_present,
+        "total_absent": total_absent,
+        "total_leave": total_leave,
+    }
 
+    return render(request, "core/employee_dashboard.html", context)
 
 # ================================================================
 # Profile & Employee Management
@@ -87,7 +108,21 @@ def mark_attendance(request):
         return redirect('attendance_view')
 
     return render(request, 'core/attendance_mark.html', {'attendance': att})
+@login_required
+def add_attendance(request):
+    employee = get_object_or_404(Employee, user=request.user)
 
+    if request.method == "POST":
+        form = AttendanceForm(request.POST)
+        if form.is_valid():
+            attendance = form.save(commit=False)
+            attendance.employee = employee
+            attendance.save()
+            return redirect("employee_dashboard")  # back to dashboard
+    else:
+        form = AttendanceForm()
+
+    return render(request, "core/add_attendance.html", {"form": form})
 
 @login_required
 def attendance_view(request):

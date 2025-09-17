@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+
+      <!-- Profile Card -->
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-primary text-white text-center py-4 rounded-top-4">
+          <h3 class="mb-0">{{ employee.user.first_name }} {{ employee.user.last_name }}</h3>
+          <p class="mb-0">{{ employee.department.name }}</p>
+        </div>
+        <div class="card-body">
+
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Username:</div>
+            <div class="col-md-8">{{ employee.user.username }}</div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Email:</div>
+            <div class="col-md-8">{{ employee.user.email }}</div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Phone:</div>
+            <div class="col-md-8">{{ employee.phone|default:"Not provided" }}</div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Gender:</div>
+            <div class="col-md-8">{{ employee.gender }}</div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Date of Joining:</div>
+            <div class="col-md-8">{{ employee.date_joined }}</div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-4 fw-bold">Position:</div>
+            <div class="col-md-8">{{ employee.position|default:"Not assigned" }}</div>
+          </div>
+
+        </div>
+
+        <!-- Card Footer -->
+        <div class="card-footer bg-light text-center">
+          <a href="{% url 'employee_dashboard' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back to Dashboard
+          </a>
+          <a href="{% url 'my_profile' %}" class="btn btn-primary btn-sm">
+            <i class="bi bi-pencil-square"></i> Edit Profile
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

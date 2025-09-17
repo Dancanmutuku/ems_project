@@ -9,7 +9,7 @@ urlpatterns = [
 
     # Dashboard & Profile
     path("dashboard/", views.employee_dashboard, name="employee_dashboard"),
-    
+    path("attendance/add/", views.add_attendance, name="add_attendance"),
 
     # Attendance
     
