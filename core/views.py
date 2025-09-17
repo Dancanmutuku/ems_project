@@ -38,17 +38,37 @@ def employee_login(request):
 @login_required
 def employee_dashboard(request):
     employee = get_object_or_404(Employee, user=request.user)
+
+    # Payrolls
     payrolls = Payroll.objects.filter(employee=employee).order_by('-period_end')[:6]
+
+    # Leave Requests
     leaves = LeaveRequest.objects.filter(employee=employee).order_by('-requested_at')[:5]
+
+    # Notifications
     notifications = Notification.objects.filter(user=request.user).order_by('-created_at')[:5]
 
-    return render(request, "core/employee_dashboard.html", {
+    # Attendance Records
+    attendance_records = Attendance.objects.filter(employee=employee).order_by('-date')[:10]  # last 10
+
+    # Attendance summary
+    total_present = Attendance.objects.filter(employee=employee, status="Present").count()
+    total_absent = Attendance.objects.filter(employee=employee, status="Absent").count()
+    total_leave = Attendance.objects.filter(employee=employee, status="Leave").count()
+
+    # Final context
+    context = {
         "employee": employee,
         "payrolls": payrolls,
         "leaves": leaves,
-        "notifications": notifications
-    })
+        "notifications": notifications,
+        "attendance_records": attendance_records,
+        "total_present": total_present,
+        "total_absent": total_absent,
+        "total_leave": total_leave,
+    }
 
+    return render(request, "core/employee_dashboard.html", context)
 
 # ================================================================
 # Profile & Employee Management
