@@ -14,7 +14,8 @@ from django.contrib.auth.models import User
 from .models import Employee, Attendance, LeaveRequest, Payroll, Notification
 from .forms import LeaveRequestForm
 from .utils import calc_nssf, calc_nhif, calc_paye, group_required
-
+from .forms import AttendanceForm
+from .models import Attendance, Employee
 
 # ================================================================
 # Authentication
@@ -107,7 +108,21 @@ def mark_attendance(request):
         return redirect('attendance_view')
 
     return render(request, 'core/attendance_mark.html', {'attendance': att})
+@login_required
+def add_attendance(request):
+    employee = get_object_or_404(Employee, user=request.user)
 
+    if request.method == "POST":
+        form = AttendanceForm(request.POST)
+        if form.is_valid():
+            attendance = form.save(commit=False)
+            attendance.employee = employee
+            attendance.save()
+            return redirect("employee_dashboard")  # back to dashboard
+    else:
+        form = AttendanceForm()
+
+    return render(request, "core/add_attendance.html", {"form": form})
 
 @login_required
 def attendance_view(request):
