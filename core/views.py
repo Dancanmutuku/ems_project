@@ -10,33 +10,18 @@ from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.models import User
 from django.db import models
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from xhtml2pdf import pisa
 
 from .models import Employee, Attendance, LeaveRequest, Payroll, Notification, Department
 from .forms import LeaveRequestForm, AttendanceForm
 from .utils import calc_nssf, calc_sha, calc_paye
 
-from django.shortcuts import render, get_object_or_404
-from .models import Employee
-from django.contrib.auth.decorators import login_required
-from .models import Department
-
-def department_list(request):
-    departments = Department.objects.all()
-    return render(request, "department_list.html", {"departments": departments})
-@login_required
-def employee_list(request):
-    employees = Employee.objects.all()
-    return render(request, "employee/employee_list.html", {"employees": employees})
 
 # ================================================================
 # Helper: Role & Group Check
 # ================================================================
-from .models import Payroll
-
-@login_required
-def employee_payroll(request):
-    payrolls = Payroll.objects.filter(employee__user=request.user)  # assuming Employee is linked to CustomUser
-    return render(request, "employee/employee_payroll.html", {"payrolls": payrolls})
 def group_required(group_name):
     """Custom decorator to check if user is in a specific group."""
     def check(user):
@@ -327,6 +312,35 @@ def payroll_mark_paid(request, pk):
     return redirect("payroll_detail", pk=pk)
 
 
+@login_required
+def employee_payroll(request):
+    employee = get_object_or_404(Employee, user=request.user)
+    payrolls = Payroll.objects.filter(employee=employee).order_by('-period_end')
+    return render(request, "employee/employee_payroll.html", {"payrolls": payrolls})
+
+
+@login_required
+def payroll_pdf(request, payroll_id):
+    employee = get_object_or_404(Employee, user=request.user)
+    payroll = get_object_or_404(Payroll, id=payroll_id, employee=employee)
+
+    html = render_to_string("employee/payroll_pdf.html", {
+        "payroll": payroll,
+        "employee": employee,
+        "generated_at": timezone.now(),
+    })
+
+    filename = f"payslip_{payroll.period_start.strftime('%Y-%m-%d')}_{payroll.period_end.strftime('%Y-%m-%d')}.pdf"
+
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+    pisa_status = pisa.CreatePDF(html, dest=response)
+    if pisa_status.err:
+        print(pisa_status.err)  # debug in console
+        return HttpResponse("We had some errors while generating the PDF")
+
+    return response
 # ================================================================
 # HR Dashboard
 # ================================================================

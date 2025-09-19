@@ -25,15 +25,15 @@ urlpatterns = [
     path("profile/", views.my_profile, name="my_profile"),
 
     # ==============================================================
-    # Employee & Department Management
+    # HR Management (HR Only)
     # ==============================================================
-    path("employee/list/", views.employee_list, name="employee_list"),
-    path("department/list/", views.department_list, name="department_list"),
+    path("hr/employees/", views.hr_employee_list, name="hr_employee_list"),
+    path("hr/departments/", views.hr_department_list, name="hr_department_list"),
 
     # ==============================================================
     # Attendance
     # ==============================================================
-    path("attendance/add/", views.add_attendance, name="add_attendance"),
+    path("attendance/add/", views.add_attendance, name="add_attendance"),   # employee
     path("attendance/mark/", views.mark_attendance, name="mark_attendance"),
     path("attendance/view/", views.attendance_view, name="attendance_view"),
 
@@ -47,16 +47,21 @@ urlpatterns = [
     # ==============================================================
     # Payroll
     # ==============================================================
+    # HR Actions
     path("payroll/generate/<int:emp_id>/", views.generate_payroll_for_employee, name="generate_payroll"),
     path("payroll/<int:pk>/", views.payroll_detail, name="payroll_detail"),
     path("payroll/mark-paid/<int:pk>/", views.payroll_mark_paid, name="payroll_mark_paid"),
+
+    # Employee Actions
     path("employee/payroll/", views.employee_payroll, name="employee_payroll"),
+    path("employee/payroll/<int:payroll_id>/pdf/", views.payroll_pdf, name="payroll_pdf"),
+
     # ==============================================================
-    # Reports
+    # Reports (HR Only)
     # ==============================================================
-    path("reports/employees/", views.employee_report, name="employee_report"),
-    path("reports/attendance/", views.attendance_report, name="attendance_report"),
-    path("reports/salary/", views.salary_report, name="salary_report"),
+    path("hr/reports/employees/", views.employee_report, name="employee_report"),
+    path("hr/reports/attendance/", views.attendance_report, name="attendance_report"),
+    path("hr/reports/salary/", views.salary_report, name="salary_report"),
 
     # ==============================================================
     # Default Landing

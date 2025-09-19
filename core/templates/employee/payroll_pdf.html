@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Payslip - {{ employee.user.get_full_name }}</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            font-size: 12px;
+            color: #333;
+            margin: 20px;
+        }
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #004080;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        .header img {
+            height: 60px;
+        }
+        .company-info {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #555;
+        }
+        h2 {
+            margin: 5px 0;
+            color: #004080;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 15px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th {
+            background: #f0f0f0;
+            text-align: left;
+        }
+        th, td {
+            padding: 8px;
+        }
+        .summary {
+            font-weight: bold;
+            background: #f9f9f9;
+        }
+        .signature-section {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature {
+            width: 45%;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            font-size: 10px;
+            margin-top: 30px;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <img src="/static/images/company_logo.png" alt="Company Logo">
+        <h2>Techpak Technologies Limited.</h2>
+        <p class="company-info">
+            Banda Street, Nairobi | Email: hr@techpaktechnologieslimited.com | Tel: +254 700 000 000
+        </p>
+    </div>
+
+    <!-- Employee Info -->
+    <table>
+        <tr>
+            <td><strong>Employee Name:</strong> {{ employee.user.get_full_name }}</td>
+            <td><strong>Employee ID:</strong> {{ employee.id }}</td>
+        </tr>
+        <tr>
+            <td><strong>Department:</strong> {{ employee.department.name }}</td>
+            <td><strong>Pay Period:</strong> {{ payroll.period_start }} – {{ payroll.period_end }}</td>
+        </tr>
+    </table>
+
+    <!-- Payroll Breakdown -->
+    <table>
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Amount (KES)</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Basic Salary</td>
+                <td>{{ payroll.basic_salary }}</td>
+            </tr>
+            <tr>
+                <td>Allowances</td>
+                <td>{{ payroll.allowances }}</td>
+            </tr>
+            <tr>
+                <td>Gross Salary</td>
+                <td>{{ payroll.gross_salary }}</td>
+            </tr>
+            <tr>
+                <td>PAYE</td>
+                <td>-{{ payroll.paye }}</td>
+            </tr>
+            <tr>
+                <td>SHA</td>
+                <td>-{{ payroll.sha }}</td>
+            </tr>
+            <tr>
+                <td>NSSF</td>
+                <td>-{{ payroll.nssf }}</td>
+            </tr>
+            <tr class="summary">
+                <td>Net Pay</td>
+                <td>{{ payroll.net_pay }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <!-- Signatures -->
+    <div class="signature-section">
+        <div class="signature">
+            <p>______________________</p>
+            <p><strong>HR Manager</strong></p>
+        </div>
+        <div class="signature">
+            <p>______________________</p>
+            <p><strong>Employee Signature</strong></p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p>This payslip is confidential and intended for {{ employee.user.get_full_name }} only.</p>
+        <p>Generated on {{ payroll.processed_at|date:"Y-m-d H:i" }}</p>
+    </div>
+
+</body>
+</html>
