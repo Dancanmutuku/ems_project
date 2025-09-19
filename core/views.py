@@ -13,7 +13,7 @@ from django.db import models
 
 from .models import Employee, Attendance, LeaveRequest, Payroll, Notification, Department
 from .forms import LeaveRequestForm, AttendanceForm
-from .utils import calc_nssf, calc_nhif, calc_paye
+from .utils import calc_nssf, calc_sha, calc_paye
 
 from django.shortcuts import render, get_object_or_404
 from .models import Employee
@@ -31,6 +31,12 @@ def employee_list(request):
 # ================================================================
 # Helper: Role & Group Check
 # ================================================================
+from .models import Payroll
+
+@login_required
+def employee_payroll(request):
+    payrolls = Payroll.objects.filter(employee__user=request.user)  # assuming Employee is linked to CustomUser
+    return render(request, "employee/employee_payroll.html", {"payrolls": payrolls})
 def group_required(group_name):
     """Custom decorator to check if user is in a specific group."""
     def check(user):
@@ -271,10 +277,10 @@ def generate_payroll_for_employee(request, emp_id):
 
     gross = employee.salary
     nssf = calc_nssf(gross)
-    nhif = calc_nhif(gross)
+    sha = calc_sha(gross)
     paye = calc_paye(gross)
     other = Decimal('0.00')
-    net = gross - nssf - nhif - paye - other
+    net = gross - nssf - sha - paye - other
 
     payroll = Payroll.objects.create(
         employee=employee,
@@ -282,7 +288,7 @@ def generate_payroll_for_employee(request, emp_id):
         period_end=end,
         gross_salary=gross,
         nssf=nssf,
-        nhif=nhif,
+        sha=sha,
         paye=paye,
         other_deductions=other,
         net_pay=net,

@@ -50,7 +50,7 @@ urlpatterns = [
     path("payroll/generate/<int:emp_id>/", views.generate_payroll_for_employee, name="generate_payroll"),
     path("payroll/<int:pk>/", views.payroll_detail, name="payroll_detail"),
     path("payroll/mark-paid/<int:pk>/", views.payroll_mark_paid, name="payroll_mark_paid"),
-
+    path("employee/payroll/", views.employee_payroll, name="employee_payroll"),
     # ==============================================================
     # Reports
     # ==============================================================

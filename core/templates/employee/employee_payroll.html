@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container mt-4">
+  <h2 class="mb-3">My Payroll</h2>
+  <table class="table table-striped table-bordered">
+    <thead class="table-dark">
+      <tr>
+        <th>Period</th>
+        <th>Basic Salary</th>
+        <th>Allowances</th>
+        <th>Gross Salary</th>
+        <th>PAYE</th>
+        <th>SHA</th>
+        <th>NSSF</th>
+        <th>Net Pay</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for payroll in payrolls %}
+      <tr>
+        <td>{{ payroll.period_start }} - {{ payroll.period_end }}</td>
+        <td>{{ payroll.basic_salary }}</td>
+        <td>{{ payroll.allowances }}</td>
+        <td>{{ payroll.gross_salary }}</td>
+        <td>{{ payroll.paye }}</td>
+        <td>{{ payroll.sha }}</td>
+        <td>{{ payroll.nssf }}</td>
+        <td><strong>{{ payroll.net_pay }}</strong></td>
+        <td>
+          {% if payroll.status == "Paid" %}
+            <span class="badge bg-success">{{ payroll.status }}</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">{{ payroll.status }}</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td colspan="9" class="text-center">No payroll records available.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
