@@ -16,7 +16,7 @@ def calc_nssf(gross: Decimal) -> Decimal:
     # Placeholder: simple fixed percentage or bracket
     return (gross * Decimal('0.06')).quantize(Decimal('0.01'))
 
-def calc_nhif(gross: Decimal) -> Decimal:
+def calc_sha(gross: Decimal) -> Decimal:
     # Placeholder flat logic
     return (gross * Decimal('0.02')).quantize(Decimal('0.01'))
 

@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
-from .utils import calc_nssf, calc_nhif, calc_paye
+from .utils import calc_nssf, calc_sha, calc_paye
 from django.contrib.auth.models import AbstractUser
 
 class HR(models.Model):
@@ -47,11 +47,11 @@ class Employee(models.Model):
     def calculate_net_salary(self):
         gross = self.salary
         nssf = calc_nssf(gross)
-        nhif = calc_nhif(gross)
+        sha = calc_sha(gross)
         paye = calc_paye(gross)
         other = Decimal('0.00')
-        net = gross - nssf - nhif - paye - other
-        return {"gross": gross, "nssf": nssf, "nhif": nhif, "paye": paye, "other": other, "net": net}
+        net = gross - nssf - sha - paye - other
+        return {"gross": gross, "nssf": nssf, "sha": sha, "paye": paye, "other": other, "net": net}
 
 
 class EmployeeDocument(models.Model):
@@ -103,7 +103,7 @@ class Payroll(models.Model):
     allowances = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     gross_salary = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     paye = models.DecimalField(max_digits=10, decimal_places=2, editable=False, default=0)
-    nhif = models.DecimalField(max_digits=10, decimal_places=2, editable=False, default=0)
+    sha = models.DecimalField(max_digits=10, decimal_places=2, editable=False, default=0)
     nssf = models.DecimalField(max_digits=10, decimal_places=2, editable=False, default=0)
     net_pay = models.DecimalField(max_digits=10, decimal_places=2, editable=False)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
@@ -121,13 +121,13 @@ class Payroll(models.Model):
         return tax
 
     def calculate_nhif(self, gross):
-        nhif_brackets = [(Decimal("5999"), 150), (Decimal("7999"), 300), (Decimal("11999"), 400),
+        sha_brackets = [(Decimal("5999"), 150), (Decimal("7999"), 300), (Decimal("11999"), 400),
                          (Decimal("14999"), 500), (Decimal("19999"), 600), (Decimal("24999"), 750),
                          (Decimal("29999"), 850), (Decimal("34999"), 900), (Decimal("39999"), 950),
                          (Decimal("44999"), 1000), (Decimal("49999"), 1100), (Decimal("59999"), 1200),
                          (Decimal("69999"), 1300), (Decimal("79999"), 1400), (Decimal("89999"), 1500),
                          (Decimal("99999"), 1600), (Decimal("999999999"), 1700)]
-        for limit, amount in nhif_brackets:
+        for limit, amount in sha_brackets:
             if gross <= limit:
                 return Decimal(amount)
         return Decimal('0.00')
@@ -146,8 +146,8 @@ class Payroll(models.Model):
         self.nssf = self.calculate_nssf(self.gross_salary)
         taxable_income = self.gross_salary - self.nssf
         self.paye = self.calculate_paye(taxable_income)
-        self.nhif = self.calculate_nhif(self.gross_salary)
-        self.net_pay = self.gross_salary - (self.paye + self.nhif + self.nssf)
+        self.sha = self.calculate_sha(self.gross_salary)
+        self.net_pay = self.gross_salary - (self.paye + self.sha + self.nssf)
         super().save(*args, **kwargs)
 
     def __str__(self):
