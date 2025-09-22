@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Payslip - {{ employee.user.get_full_name }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>Payslip - {{ employee.user.get_full_name|default:"Employee" }}</title>
     <style>
         body {
             font-family: Arial, Helvetica, sans-serif;
@@ -25,20 +24,33 @@
             margin: 5px 0;
             color: #004080;
         }
-        .table th, .table td {
-            vertical-align: middle;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
         }
         .summary {
             font-weight: bold;
-            background: #f9f9f9;
+            background-color: #f9f9f9;
         }
         .signature-section {
             margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
         }
         .signature {
-            width: 45%;
             text-align: center;
-            margin-bottom: 20px;
+            width: 45%;
         }
         .footer {
             text-align: center;
@@ -50,95 +62,85 @@
 </head>
 <body>
 
-<div class="container">
-
-    <!-- Header -->
-    <div class="header">
-        <img src="{% static 'images/company_logo.png' %}" alt="Company Logo">
-        <h2>Techpak Technologies Limited</h2>
-        <p class="text-muted small">
-            Banda Street, Nairobi | Email: hr@techpaktechnologieslimited.com | Tel: +254 700 000 000
-        </p>
-    </div>
-
-    <!-- Employee Info -->
-    <div class="row mb-3">
-        <div class="col-sm-6">
-            <strong>Employee Name:</strong> {{ employee.user.get_full_name }}
-        </div>
-        <div class="col-sm-6">
-            <strong>Employee ID:</strong> {{ employee.id }}
-        </div>
-        <div class="col-sm-6 mt-2">
-            <strong>Department:</strong> {{ employee.department.name }}
-        </div>
-        <div class="col-sm-6 mt-2">
-            <strong>Pay Period:</strong> {{ payroll.period_start }} – {{ payroll.period_end }}
-        </div>
-    </div>
-
-    <!-- Payroll Breakdown -->
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped">
-            <thead class="table-light">
-                <tr>
-                    <th>Description</th>
-                    <th>Amount (KES)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td>Basic Salary</td>
-                    <td>{{ payroll.basic_salary }}</td>
-                </tr>
-                <tr>
-                    <td>Allowances</td>
-                    <td>{{ payroll.allowances }}</td>
-                </tr>
-                <tr>
-                    <td>Gross Salary</td>
-                    <td>{{ payroll.gross_salary }}</td>
-                </tr>
-                <tr>
-                    <td>PAYE</td>
-                    <td>-{{ payroll.paye }}</td>
-                </tr>
-                <tr>
-                    <td>SHA</td>
-                    <td>-{{ payroll.sha }}</td>
-                </tr>
-                <tr>
-                    <td>NSSF</td>
-                    <td>-{{ payroll.nssf }}</td>
-                </tr>
-                <tr class="summary">
-                    <td>Net Pay</td>
-                    <td>{{ payroll.net_pay }}</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <!-- Signatures -->
-    <div class="row signature-section">
-        <div class="col-6 signature">
-            <p>______________________</p>
-            <p><strong>HR Manager</strong></p>
-        </div>
-        <div class="col-6 signature">
-            <p>______________________</p>
-            <p><strong>Employee Signature</strong></p>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-        <p>This payslip is confidential and intended for {{ employee.user.get_full_name }} only.</p>
-        <p>Generated on {{ payroll.processed_at|date:"Y-m-d H:i" }}</p>
-    </div>
-
+<div class="header">
+    {% if STATIC_URL %}
+        <img src="{{ STATIC_URL }}images/company_logo.png" alt="Company Logo">
+    {% endif %}
+    <h2>Techpak Technologies Limited</h2>
+    <p style="font-size:12px; color:#555;">
+        Banda Street, Nairobi | Email: hr@techpaktechnologieslimited.com | Tel: +254 700 000 000
+    </p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Employee Info -->
+<table>
+    <tr>
+        <td><strong>Employee Name:</strong> {{ employee.user.get_full_name|default:employee.user.username }}</td>
+        <td><strong>Employee ID:</strong> {{ employee.id }}</td>
+    </tr>
+    <tr>
+        <td><strong>Department:</strong> {{ employee.department.name|default:"N/A" }}</td>
+        <td><strong>Pay Period:</strong> {{ payroll.period_start|date:"Y-m-d" }} – {{ payroll.period_end|date:"Y-m-d" }}</td>
+    </tr>
+</table>
+
+<!-- Payroll Breakdown -->
+<table>
+    <thead>
+        <tr>
+            <th>Description</th>
+            <th>Amount (KES)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td>Basic Salary</td>
+            <td>{{ payroll.basic_salary|default:"0.00" }}</td>
+        </tr>
+        <tr>
+            <td>Allowances</td>
+            <td>{{ payroll.allowances|default:"0.00" }}</td>
+        </tr>
+        <tr>
+            <td>Gross Salary</td>
+            <td>{{ payroll.gross_salary|default:"0.00" }}</td>
+        </tr>
+        <tr>
+            <td>PAYE</td>
+            <td>-{{ payroll.paye|default:"0.00" }}</td>
+        </tr>
+        <tr>
+            <td>SHA</td>
+            <td>-{{ payroll.sha|default:"0.00" }}</td>
+        </tr>
+        <tr>
+            <td>NSSF</td>
+            <td>-{{ payroll.nssf|default:"0.00" }}</td>
+        </tr>
+        <tr class="summary">
+            <td>Net Pay</td>
+            <td>{{ payroll.net_pay|default:"0.00" }}</td>
+        </tr>
+    </tbody>
+</table>
+
+<!-- Signatures -->
+<div class="signature-section">
+    <div class="signature">
+        <p>______________________</p>
+        <p><strong>HR Manager</strong></p>
+    </div>
+    <div class="signature">
+        <p>______________________</p>
+        <p><strong>Employee Signature</strong></p>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="footer">
+    <p>This payslip is confidential and intended for {{ employee.user.get_full_name|default:employee.user.username }} only.</p>
+    <p>Generated on {% if payroll.processed_at %}{{ payroll.processed_at|date:"Y-m-d H:i" }}{% else %}{{ generated_at|date:"Y-m-d H:i" }}{% endif %}</p>
+</div>
+
 </body>
 </html>
