@@ -21,7 +21,7 @@ from django.conf import settings
 from .models import Employee, Attendance, LeaveRequest, Payroll, Notification, Department
 from .forms import LeaveRequestForm, AttendanceForm
 from .utils import calc_nssf, calc_sha, calc_paye
-
+from django.views.decorators.http import require_POST
 # ================================================================
 # Logger
 # ================================================================
@@ -82,10 +82,11 @@ def employee_login(request):
     return render(request, 'registration/login.html')
 
 @login_required
+@require_POST
 def employee_logout(request):
     logout(request)
+    messages.success(request, "You have successfully logged out.")
     return redirect("login")
-
 # ================================================================
 # Employee Dashboard
 # ================================================================
