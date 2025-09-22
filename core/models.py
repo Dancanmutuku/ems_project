@@ -3,18 +3,26 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from .utils import calc_nssf, calc_sha, calc_paye
-from django.contrib.auth.models import AbstractUser
 
+# --------------------------
+# HR Model
+# --------------------------
 class HR(models.Model):
-    user = models.OneToOneField('auth.User', on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
     department = models.CharField(max_length=100, blank=True, null=True)
 
     def __str__(self):
         return self.user.username
+
+# --------------------------
+# Choices
+# --------------------------
 GENDER_CHOICES = (('M', 'Male'), ('F', 'Female'), ('O', 'Other'))
 LEAVE_STATUS = (('P', 'Pending'), ('A', 'Approved'), ('R', 'Rejected'))
 
-
+# --------------------------
+# Department Model
+# --------------------------
 class Department(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
@@ -22,7 +30,9 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
-
+# --------------------------
+# Employee Model
+# --------------------------
 class Employee(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee_profile')
     employee_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
@@ -53,7 +63,9 @@ class Employee(models.Model):
         net = gross - nssf - sha - paye - other
         return {"gross": gross, "nssf": nssf, "sha": sha, "paye": paye, "other": other, "net": net}
 
-
+# --------------------------
+# Employee Document
+# --------------------------
 class EmployeeDocument(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='documents')
     doc = models.FileField(upload_to='employee_docs/%Y/%m/')
@@ -63,7 +75,9 @@ class EmployeeDocument(models.Model):
     def __str__(self):
         return f"{self.employee} - {self.doc_type}"
 
-
+# --------------------------
+# Attendance
+# --------------------------
 class Attendance(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='attendance')
     date = models.DateField(auto_now_add=True)
@@ -75,7 +89,9 @@ class Attendance(models.Model):
     def __str__(self):
         return f"{self.employee.user.username} - {self.date}"
 
-
+# --------------------------
+# Leave Requests
+# --------------------------
 class LeaveRequest(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='leaves')
     leave_type = models.CharField(max_length=50)
@@ -93,7 +109,9 @@ class LeaveRequest(models.Model):
     def __str__(self):
         return f"{self.employee} {self.leave_type} {self.start_date}→{self.end_date} [{self.status}]"
 
-
+# --------------------------
+# Payroll
+# --------------------------
 class Payroll(models.Model):
     STATUS_CHOICES = [('Pending', 'Pending'), ('Paid', 'Paid')]
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
@@ -139,6 +157,9 @@ class Payroll(models.Model):
             tier2 = min(gross - Decimal("7000"), Decimal("29000")) * Decimal("0.06")
         return tier1 + tier2
 
+    def calculate_sha(self, gross):
+        return self.calculate_nhif(gross)
+
     def save(self, *args, **kwargs):
         self.basic_salary = Decimal(self.basic_salary)
         self.allowances = Decimal(self.allowances)
@@ -153,7 +174,9 @@ class Payroll(models.Model):
     def __str__(self):
         return f"{self.employee} [{self.period_start} - {self.period_end}] - {self.get_status_display()}"
 
-
+# --------------------------
+# KPI
+# --------------------------
 class KPI(models.Model):
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='kpis')
     name = models.CharField(max_length=200)
@@ -173,7 +196,9 @@ class KPI(models.Model):
     def __str__(self):
         return f"{self.employee} KPI: {self.name}"
 
-
+# --------------------------
+# Notifications
+# --------------------------
 class Notification(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
     title = models.CharField(max_length=200)

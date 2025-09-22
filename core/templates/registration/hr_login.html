@@ -4,32 +4,47 @@
 <head>
     <meta charset="UTF-8">
     <title>HR Login</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .card {
+            border-radius: 15px;
+        }
+        .form-label {
+            font-weight: 500;
+        }
+        .alert {
+            margin-bottom: 15px;
+        }
+    </style>
 </head>
-<body class="bg-light">
+<body>
 
-<div class="container d-flex justify-content-center align-items-center vh-100">
-    <div class="card shadow-lg p-4" style="max-width: 400px; width: 100%;">
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow-lg p-4 w-100" style="max-width: 400px;">
         <h3 class="text-center mb-4">HR Login</h3>
 
         {% if messages %}
         <div>
             {% for message in messages %}
-            <div class="alert alert-danger">{{ message }}</div>
+            <div class="alert alert-danger text-center" role="alert">{{ message }}</div>
             {% endfor %}
         </div>
         {% endif %}
 
-        <form method="POST">
+        <form method="POST" novalidate>
             {% csrf_token %}
             <div class="mb-3">
                 <label for="username" class="form-label">Username</label>
-                <input type="text" name="username" class="form-control" placeholder="Enter HR username" required>
+                <input type="text" name="username" id="username" class="form-control" placeholder="Enter HR username" required>
             </div>
 
             <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                <input type="password" name="password" id="password" class="form-control" placeholder="Enter password" required>
             </div>
 
             <button type="submit" class="btn btn-primary w-100">Login</button>
@@ -41,5 +56,6 @@
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

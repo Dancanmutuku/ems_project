@@ -1,18 +1,37 @@
 {% extends 'core/base.html' %}
 {% block title %}Employees{% endblock %}
+
 {% block content %}
-<h1>Employees</h1>
-<table>
-  <thead><tr><th>Name</th><th>Job Title</th><th>Department</th><th>Salary</th></tr></thead>
-  <tbody>
-    {% for e in employees %}
-    <tr>
-      <td>{{ e.user.get_full_name }} ({{ e.user.username }})</td>
-      <td>{{ e.job_title }}</td>
-      <td>{{ e.department }}</td>
-      <td>{{ e.salary }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="container mt-4">
+  <h2 class="mb-4">Employees</h2>
+
+  <div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover align-middle">
+      <thead class="table-dark">
+        <tr>
+          <th>Name</th>
+          <th>Job Title</th>
+          <th>Department</th>
+          <th>Salary (Ksh)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in employees %}
+        <tr>
+          <td class="text-truncate" style="max-width: 200px;">
+            {{ e.user.get_full_name }} ({{ e.user.username }})
+          </td>
+          <td>{{ e.job_title|default:"Not Assigned" }}</td>
+          <td>{{ e.department|default:"-" }}</td>
+          <td>{{ e.salary|default:"0" }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center text-muted">No employees found.</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% endblock %}

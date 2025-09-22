@@ -1,10 +1,57 @@
 {% extends 'core/base.html' %}
+
 {% block content %}
-<h2>Payslip for {{ payroll.period_start }} → {{ payroll.period_end }}</h2>
-<p>Gross Salary: {{ payroll.gross_salary }}</p>
-<p>NSSF: {{ payroll.nssf }}</p>
-<p>NHIF: {{ payroll.nhif }}</p>
-<p>PAYE: {{ payroll.paye }}</p>
-<p>Other deductions: {{ payroll.other_deductions }}</p>
-<h3>Net pay: {{ payroll.net_pay }}</h3>
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-12 col-sm-10 col-md-8">
+
+      <div class="card shadow-lg border-0 rounded-4">
+        <div class="card-header bg-primary text-white text-center py-3 rounded-top-4">
+          <h3 class="mb-0">Payslip</h3>
+          <small>{{ payroll.period_start }} → {{ payroll.period_end }}</small>
+        </div>
+
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-bordered mb-3">
+              <tbody>
+                <tr>
+                  <th scope="row">Gross Salary</th>
+                  <td>Ksh {{ payroll.gross_salary }}</td>
+                </tr>
+                <tr>
+                  <th scope="row">NSSF</th>
+                  <td>Ksh {{ payroll.nssf }}</td>
+                </tr>
+                <tr>
+                  <th scope="row">NHIF</th>
+                  <td>Ksh {{ payroll.nhif }}</td>
+                </tr>
+                <tr>
+                  <th scope="row">PAYE</th>
+                  <td>Ksh {{ payroll.paye }}</td>
+                </tr>
+                <tr>
+                  <th scope="row">Other Deductions</th>
+                  <td>Ksh {{ payroll.other_deductions }}</td>
+                </tr>
+                <tr class="table-success">
+                  <th scope="row">Net Pay</th>
+                  <td><strong>Ksh {{ payroll.net_pay }}</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="text-center">
+            <a href="{% url 'employee_payroll' %}" class="btn btn-secondary btn-sm">
+              <i class="bi bi-arrow-left"></i> Back to Payrolls
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 {% endblock %}
