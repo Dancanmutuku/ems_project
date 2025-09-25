@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+{% load widget_tweaks %}
+{% block content %}
+<h2>{% if form.instance.pk %}Edit Payroll{% else %}Add Payroll{% endif %}</h2>
+<form method="POST">
+    {% csrf_token %}
+    {% for field in form %}
+        <div class="mb-3">
+            <label>{{ field.label_tag }}</label>
+            {% render_field field class="form-control" %}
+            {% if field.errors %}
+                <div class="text-danger">{{ field.errors }}</div>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <button type="submit" class="btn btn-success">Save</button>
+</form>
+{% endblock %}

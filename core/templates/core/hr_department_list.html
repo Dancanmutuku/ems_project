@@ -1,0 +1,36 @@
+{% extends "base_hr.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">Departments</h2>
+
+    <div class="d-flex justify-content-between mb-3">
+        <a href="{% url 'hr_department_create' %}" class="btn btn-primary">➕ Add Department</a>
+    </div>
+
+    {% if departments %}
+    <table class="table table-striped table-bordered">
+        <thead class="table-dark">
+            <tr>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dept in departments %}
+            <tr>
+                <td>{{ dept.name }}</td>
+                <td>{{ dept.description|default:"-" }}</td>
+                <td>
+                    <a href="{% url 'hr_department_edit' dept.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                    <a href="{% url 'hr_department_delete' dept.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">No departments found.</div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+{% extends "base_hr.html" %}
 {% load widget_tweaks %}
 
 {% block title %}Apply for Leave{% endblock %}
@@ -14,6 +14,17 @@
         <div class="card-body">
           <form method="post" novalidate>
             {% csrf_token %}
+
+            {% if is_hr %}
+            <!-- Employee Dropdown for HR -->
+            <div class="mb-3">
+              <label for="id_employee" class="form-label">Employee</label>
+              {{ form.employee|add_class:"form-select" }}
+              {% if form.employee.errors %}
+                <div class="text-danger small mt-1">{{ form.employee.errors }}</div>
+              {% endif %}
+            </div>
+            {% endif %}
 
             <!-- Leave Type -->
             <div class="mb-3">

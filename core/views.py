@@ -1,11 +1,11 @@
 # core/views.py
-
 from decimal import Decimal
 from datetime import date
 import calendar
 import logging
 import os
 
+from django import forms
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth import authenticate, login, logout
@@ -17,11 +17,38 @@ from django.http import HttpResponse
 from django.template.loader import render_to_string
 from xhtml2pdf import pisa
 from django.conf import settings
+from django.views.decorators.http import require_POST
+from django.forms import modelform_factory
 
 from .models import Employee, Attendance, LeaveRequest, Payroll, Notification, Department
-from .forms import LeaveRequestForm, AttendanceForm
+from .forms import EmployeeForm, LeaveRequestForm, AttendanceForm, DepartmentForm, UserForm
 from .utils import calc_nssf, calc_sha, calc_paye
-from django.views.decorators.http import require_POST
+from .forms import PayrollForm  # we’ll create this next
+
+def payroll_list(request):
+    payrolls = Payroll.objects.all()  # <- fetch all payroll records
+    return render(request, 'core/payroll_list.html', {'payrolls': payrolls})
+
+def payroll_add(request):
+    if request.method == 'POST':
+        form = PayrollForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('payroll_list')
+    else:
+        form = PayrollForm()
+    return render(request, 'core/payroll_form.html', {'form': form})
+
+def payroll_edit(request, pk):
+    payroll = get_object_or_404(Payroll, pk=pk)
+    if request.method == 'POST':
+        form = PayrollForm(request.POST, instance=payroll)
+        if form.is_valid():
+            form.save()
+            return redirect('payroll_list')
+    else:
+        form = PayrollForm(instance=payroll)
+    return render(request, 'core/payroll_form.html', {'form': form})
 # ================================================================
 # Logger
 # ================================================================
@@ -56,7 +83,7 @@ def is_hr(user):
     return user.is_authenticated and (user.is_superuser or user.groups.filter(name="HR").exists())
 
 # ================================================================
-# Login / Logout
+# Authentication
 # ================================================================
 def hr_login(request):
     if request.method == "POST":
@@ -87,6 +114,7 @@ def employee_logout(request):
     logout(request)
     messages.success(request, "You have successfully logged out.")
     return redirect("login")
+
 # ================================================================
 # Employee Dashboard
 # ================================================================
@@ -127,14 +155,95 @@ def my_profile(request):
     return render(request, 'core/my_profile.html', {'employee': emp})
 
 # ================================================================
-# HR Management: Employees, Departments, Leaves
+# HR Dashboard
+# ================================================================
+@login_required
+@group_required('HR')
+def hr_dashboard(request):
+    employees = Employee.objects.all()
+    departments = Department.objects.all()
+    pending_leaves = LeaveRequest.objects.filter(status='P')
+    payrolls = Payroll.objects.all().order_by("-period_end")[:5]
+
+    context = {
+        "employees_count": employees.count(),
+        "departments_count": departments.count(),
+        "pending_leaves": pending_leaves,
+        "recent_payrolls": payrolls,
+    }
+    return render(request, 'core/hr_dashboard.html', context)
+
+# ================================================================
+# HR Management: Employee CRUD
 # ================================================================
 @login_required
 @group_required('HR')
 def hr_employee_list(request):
     employees = Employee.objects.select_related('user', 'department').all()
-    return render(request, 'core/hr_employee_list.html', {'employees': employees})
+    return render(request, 'hr/hr_employee_list.html', {'employees': employees})
 
+@login_required
+@group_required('HR')
+def hr_employee_create(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        email = request.POST.get("email")
+        password = request.POST.get("password")
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, "Username already exists!")
+        else:
+            # Create the Django User
+            user = User.objects.create_user(username=username, email=email, password=password)
+            
+            # Create the Employee linked to the User
+            employee_form = EmployeeForm(request.POST, request.FILES)
+            if employee_form.is_valid():
+                employee = employee_form.save(commit=False)
+                employee.user = user
+                employee.save()
+                messages.success(request, "Employee created successfully!")
+                return redirect('hr_employee_list')
+            else:
+                messages.error(request, "Please fix the errors below.")
+    else:
+        employee_form = EmployeeForm()
+
+    return render(request, "hr/hr_employee_form.html", {
+        "employee_form": employee_form
+    })
+
+@login_required
+@group_required('HR')
+def hr_employee_edit(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    EmployeeFormClass = modelform_factory(Employee, exclude=['user'])
+    if request.method == "POST":
+        form = EmployeeFormClass(request.POST, request.FILES, instance=employee)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Employee updated successfully.")
+            return redirect("hr_employee_list")
+    else:
+        form = EmployeeFormClass(instance=employee)
+
+    return render(request, "hr/hr_employee_form.html", {
+        "employee_form": form,
+        "employee": employee
+    })
+
+@login_required
+@group_required('HR')
+def hr_employee_delete(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    if request.method == "POST":
+        employee.delete()
+        messages.success(request, "Employee deleted successfully.")
+        return redirect("hr_employee_list")
+    return render(request, "core/confirm_delete.html", {"object": employee, "type": "Employee"})
+# ================================================================
+# HR Management: Department CRUD
+# ================================================================
 @login_required
 @group_required('HR')
 def hr_department_list(request):
@@ -143,9 +252,52 @@ def hr_department_list(request):
 
 @login_required
 @group_required('HR')
+def hr_department_create(request):
+    if request.method == "POST":
+        form = DepartmentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Department created successfully.")
+            return redirect("hr_department_list")
+    else:
+        form = DepartmentForm()
+    return render(request, "core/hr_department_form.html", {"form": form, "title": "Add Department"})
+
+@login_required
+@group_required('HR')
+def hr_department_edit(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+    if request.method == "POST":
+        form = DepartmentForm(request.POST, instance=department)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Department updated successfully.")
+            return redirect("hr_department_list")
+    else:
+        form = DepartmentForm(instance=department)
+    return render(request, "core/hr_department_form.html", {"form": form, "title": "Edit Department"})
+
+@login_required
+@group_required('HR')
+def hr_department_delete(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+    if request.method == "POST":
+        department.delete()
+        messages.success(request, "Department deleted successfully.")
+        return redirect("hr_department_list")
+    return render(request, "core/confirm_delete.html", {"object": department, "type": "Department"})
+
+# ================================================================
+# Leave Management
+# ================================================================
+@login_required
+@group_required('HR')
 def hr_leave_list(request):
-    leaves = LeaveRequest.objects.select_related("employee").all().order_by("-requested_at")
-    return render(request, 'core/hr_leave_list.html', {"leaves": leaves})
+    status = request.GET.get("status")
+    leaves = LeaveRequest.objects.select_related("employee", "employee__department").all().order_by("-requested_at")
+    if status in ["P", "A", "R"]:
+        leaves = leaves.filter(status=status)
+    return render(request, "core/hr_leave_list.html", {"leaves": leaves})
 
 @login_required
 @group_required('HR')
@@ -162,7 +314,84 @@ def reject_leave(request, pk):
     leave.status = "R"
     leave.save()
     return redirect("hr_leave_list")
+@login_required
+def leave_request_create(request):
+    is_hr = request.user.groups.filter(name="HR").exists()
 
+    if request.method == "POST":
+        form = LeaveRequestForm(request.POST)
+
+        if form.is_valid():
+            leave = form.save(commit=False)
+
+            if is_hr:
+                # HR selects employee from dropdown
+                selected_employee = form.cleaned_data.get('employee')
+                if not selected_employee:
+                    form.add_error('employee', 'Please select an employee.')
+                    return render(request, "core/leave_request_form.html", {"form": form, "is_hr": is_hr})
+                leave.employee = selected_employee
+            else:
+                # Regular employee: assign themselves
+                leave.employee = get_object_or_404(Employee, user=request.user)
+
+            leave.status = 'P'
+            leave.requested_at = timezone.now()
+            leave.save()
+
+            return redirect('leave_list')
+
+    else:
+        form = LeaveRequestForm()
+        if not is_hr:
+            # Hide employee dropdown for regular employees
+            form.fields['employee'].widget = forms.HiddenInput()
+
+    return render(request, "core/leave_request_form.html", {"form": form, "is_hr": is_hr})
+@login_required
+def leave_list(request):
+    if is_hr(request.user):
+        leaves = LeaveRequest.objects.select_related("employee").all().order_by("-requested_at")
+    else:
+        emp = get_object_or_404(Employee, user=request.user)
+        leaves = LeaveRequest.objects.filter(employee=emp).order_by("-requested_at")
+    return render(request, "core/leave_list.html", {"leaves": leaves})
+
+@login_required
+@group_required("HR")
+def leave_process(request, pk, action):
+    """
+    HR can approve, reject, or set a leave back to pending.
+    Sends a notification to the employee.
+    """
+    leave = get_object_or_404(LeaveRequest, pk=pk)
+
+    if action == "approve":
+        leave.status = "A"
+        messages.success(request, f"Leave for {leave.employee} approved.")
+    elif action == "reject":
+        leave.status = "R"
+        messages.error(request, f"Leave for {leave.employee} rejected.")
+    elif action == "pending":
+        leave.status = "P"
+        messages.info(request, f"Leave for {leave.employee} set back to pending.")
+    else:
+        messages.warning(request, "Invalid action.")
+        return redirect("leave_list")
+
+    leave.processed_by = request.user
+    leave.processed_at = timezone.now()
+    leave.save()
+
+    # Notify employee of status change
+    Notification.objects.create(
+        user=leave.employee.user,
+        title="Leave Request Update",
+        message=f"Your leave request from {leave.start_date} to {leave.end_date} "
+                f"was marked as {leave.get_status_display()}."
+    )
+
+    return redirect("leave_list")
 # ================================================================
 # Attendance
 # ================================================================
@@ -202,56 +431,6 @@ def attendance_view(request):
     emp = get_object_or_404(Employee, user=request.user)
     records = Attendance.objects.filter(employee=emp).order_by('-date')[:50]
     return render(request, 'core/attendance_view.html', {'records': records})
-
-# ================================================================
-# Leave Requests
-# ================================================================
-@login_required
-def leave_request_create(request):
-    emp = get_object_or_404(Employee, user=request.user)
-    if request.method == "POST":
-        form = LeaveRequestForm(request.POST)
-        if form.is_valid():
-            leave = form.save(commit=False)
-            leave.employee = emp
-            leave.status = 'P'
-            leave.save()
-            # Notify HR/Admin
-            admins = User.objects.filter(groups__name__in=["HR", "Admin"])
-            for a in admins:
-                Notification.objects.create(
-                    user=a,
-                    title="New leave request",
-                    message=f"{emp.user.username} requested leave {leave.start_date} → {leave.end_date}",
-                )
-            return redirect("leave_list")
-    else:
-        form = LeaveRequestForm()
-    return render(request, "core/leave_request_form.html", {"form": form})
-
-@login_required
-def leave_list(request):
-    if is_hr(request.user):
-        leaves = LeaveRequest.objects.select_related("employee").all().order_by("-requested_at")
-    else:
-        emp = get_object_or_404(Employee, user=request.user)
-        leaves = LeaveRequest.objects.filter(employee=emp).order_by("-requested_at")
-    return render(request, "core/leave_list.html", {"leaves": leaves})
-
-@login_required
-@group_required('HR')
-def leave_process(request, pk, action):
-    leave = get_object_or_404(LeaveRequest, pk=pk)
-    leave.status = 'A' if action == 'approve' else 'R'
-    leave.processed_by = request.user
-    leave.processed_at = timezone.now()
-    leave.save()
-    Notification.objects.create(
-        user=leave.employee.user,
-        title='Leave update',
-        message=f'Your leave request from {leave.start_date} to {leave.end_date} was {leave.get_status_display()}'
-    )
-    return redirect('leave_list')
 
 # ================================================================
 # Payroll
@@ -310,19 +489,23 @@ def payroll_mark_paid(request, pk):
     )
     return redirect("payroll_detail", pk=pk)
 
+def payroll_delete(request, pk):
+    payroll = get_object_or_404(Payroll, pk=pk)
+    payroll.delete()
+    messages.success(request, "Payroll deleted successfully.")
+    return redirect("payroll_list")
+
 # ================================================================
 # Employee Payroll Views
 # ================================================================
 @login_required
 def employee_payroll(request):
-    """View payroll history in browser."""
     employee = get_object_or_404(Employee, user=request.user)
     payrolls = Payroll.objects.filter(employee=employee).order_by('-period_end')
     return render(request, "employee/employee_payroll.html", {"payrolls": payrolls})
 
 @login_required
 def payroll_pdf(request, payroll_id):
-    """Download payroll as PDF."""
     payroll = get_object_or_404(Payroll, id=payroll_id)
     employee = payroll.employee
 
@@ -351,44 +534,21 @@ def payroll_pdf(request, payroll_id):
     return response
 
 # ================================================================
-# HR Dashboard
-# ================================================================
-@login_required
-@group_required('HR')
-def hr_dashboard(request):
-    employees = Employee.objects.all()
-    departments = Department.objects.all()
-    pending_leaves = LeaveRequest.objects.filter(status='P')
-    payrolls = Payroll.objects.all().order_by("-period_end")[:5]
-
-    context = {
-        "employees_count": employees.count(),
-        "departments_count": departments.count(),
-        "pending_leaves": pending_leaves,
-        "recent_payrolls": payrolls,
-    }
-    return render(request, 'core/hr_dashboard.html', context)
-
-# ================================================================
 # Reports
 # ================================================================
 @login_required
 @group_required('HR')
 def employee_report(request):
-    """Report: Count of employees per department"""
     data = Employee.objects.values('department__name').annotate(total=models.Count('id')).order_by('department__name')
     return render(request, "reports/employee_report.html", {"data": data})
 
 @login_required
 @group_required('HR')
 def attendance_report(request):
-    """Report: Count of attendance status per date"""
     data = Attendance.objects.values('date', 'status').annotate(total=models.Count('id')).order_by('date')
     return render(request, "reports/attendance_report.html", {"data": data})
 
 @login_required
-@group_required('HR')
 def salary_report(request):
-    """Report: Total salary expense of all employees"""
-    total_salary = Employee.objects.aggregate(total_salary=models.Sum('salary'))
-    return render(request, "reports/salary_report.html", {"total_salary": total_salary})
+    payrolls = Payroll.objects.all().select_related("employee__user")  # ✅ optimize query
+    return render(request, "reports/salary_report.html", {"payrolls": payrolls})
