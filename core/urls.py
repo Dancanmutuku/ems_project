@@ -8,8 +8,6 @@ urlpatterns = [
     # ==============================================================
     path("login/", auth_views.LoginView.as_view(template_name="registration/login.html"), name="login"),
     path("logout/", views.employee_logout, name="logout"),
-
-    # Custom logins
     path("hr/login/", views.hr_login, name="hr_login"),
     path("employee/login/", views.employee_login, name="employee_login"),
 
@@ -56,16 +54,14 @@ urlpatterns = [
     # ==============================================================
     # Payroll (HR + Employee)
     # ==============================================================
-    # HR Actions
     path("hr/payrolls/", views.payroll_list, name="payroll_list"),
     path("hr/payrolls/add/", views.payroll_add, name="payroll_add"),
     path("hr/payrolls/edit/<int:pk>/", views.payroll_edit, name="payroll_edit"),
     path("payroll/generate/<int:emp_id>/", views.generate_payroll_for_employee, name="generate_payroll"),
     path("payroll/<int:pk>/", views.payroll_detail, name="payroll_detail"),
     path("payroll/mark-paid/<int:pk>/", views.payroll_mark_paid, name="payroll_mark_paid"),
-    path('hr/payrolls/delete/<int:pk>/', views.payroll_delete, name='payroll_delete'),
+    path("hr/payrolls/delete/<int:pk>/", views.payroll_delete, name="payroll_delete"),
 
-    # Employee Actions
     path("employee/payroll/", views.employee_payroll, name="employee_payroll"),
     path("employee/payroll/<int:payroll_id>/pdf/", views.payroll_pdf, name="payroll_pdf"),
 
@@ -73,8 +69,14 @@ urlpatterns = [
     # Reports (HR Only)
     # ==============================================================
     path("hr/reports/employees/", views.employee_report, name="employee_report"),
+    path("hr/reports/employees/export/", views.export_employees, name="hr_export_employees"),
+
+    path("hr/reports/payroll/export/", views.export_payroll, name="hr_export_payroll"),
     path("hr/reports/attendance/", views.attendance_report, name="attendance_report"),
+    path("hr/reports/attendance/export/", views.export_attendance, name="hr_export_attendance"),
     path("hr/reports/salary/", views.salary_report, name="salary_report"),
+    path("hr/reports/salary/export/", views.export_salary, name="hr_export_salary"),
+    path("hr/reports/leave/export/", views.export_leave, name="hr_export_leave"),
 
     # ==============================================================
     # Default Landing

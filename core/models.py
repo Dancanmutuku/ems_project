@@ -42,7 +42,9 @@ class Employee(models.Model):
     address = models.TextField(blank=True)
     job_title = models.CharField(max_length=100, blank=True)
     department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
-    salary = models.DecimalField(max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)])
+    salary = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)]
+    )
     hire_date = models.DateField(null=True, blank=True)
     is_active_employee = models.BooleanField(default=True)
     profile_picture = models.ImageField(upload_to="profiles/", blank=True, null=True)
@@ -50,19 +52,42 @@ class Employee(models.Model):
     emergency_contact_phone = models.CharField(max_length=20, blank=True, null=True)
     annual_leave_balance = models.IntegerField(default=20)
     sick_leave_balance = models.IntegerField(default=10)
+    contract_start = models.DateField(null=True, blank=True)
+    contract_end = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.user.get_full_name() or self.user.username}"
+        # Use full_name property to always display a name in admin or elsewhere
+        return self.full_name
+
+    @property
+    def full_name(self):
+        """
+        Return the full name of the employee.
+        Falls back to username if first_name and last_name are empty.
+        """
+        if self.user:
+            return self.user.get_full_name() or self.user.username
+        return "-"
 
     def calculate_net_salary(self):
+        """
+        Calculate net salary after deductions.
+        Returns a dictionary with detailed breakdown.
+        """
         gross = self.salary
         nssf = calc_nssf(gross)
         sha = calc_sha(gross)
         paye = calc_paye(gross)
         other = Decimal('0.00')
         net = gross - nssf - sha - paye - other
-        return {"gross": gross, "nssf": nssf, "sha": sha, "paye": paye, "other": other, "net": net}
-
+        return {
+            "gross": gross,
+            "nssf": nssf,
+            "sha": sha,
+            "paye": paye,
+            "other": other,
+            "net": net
+        }
 # --------------------------
 # Employee Document
 # --------------------------

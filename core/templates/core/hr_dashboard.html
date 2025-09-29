@@ -77,7 +77,7 @@
                     <tbody>
                         {% for leave in pending_leaves %}
                         <tr>
-                            <td>{{ leave.employee.user.get_full_name|default:leave.employee.user.username }}</td>
+                            <td>{{ leave.employee.user.emp.full_name|default:leave.employee.user.username }}</td>
                             <td>{{ leave.start_date|date:"M d, Y" }}</td>
                             <td>{{ leave.end_date|date:"M d, Y" }}</td>
                             <td>{{ leave.reason|default:"—" }}</td>

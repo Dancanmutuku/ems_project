@@ -1,6 +1,7 @@
 # core/views.py
+import csv
 from decimal import Decimal
-from datetime import date
+from datetime import date, timedelta
 import calendar
 import logging
 import os
@@ -539,16 +540,159 @@ def payroll_pdf(request, payroll_id):
 @login_required
 @group_required('HR')
 def employee_report(request):
-    data = Employee.objects.values('department__name').annotate(total=models.Count('id')).order_by('department__name')
-    return render(request, "reports/employee_report.html", {"data": data})
+    """HR dashboard: Summary + detailed reports (Employees, Payroll, Attendance, Leaves)"""
+    # Summary cards
+    total_employees = Employee.objects.count()
+    pending_leaves = LeaveRequest.objects.filter(status="Pending").count()
+    monthly_payroll = Payroll.objects.filter(
+        period_start__month=timezone.now().month,
+        period_start__year=timezone.now().year
+    ).aggregate(total=models.Sum('net_pay'))['total'] or 0
+    expiring_contracts = Employee.objects.filter(
+        contract_end__lte=timezone.now() + timedelta(days=30)
+    ).count()
+
+    # Table data
+    employees = Employee.objects.select_related("user", "department")
+    payrolls = Payroll.objects.select_related("employee", "employee__user").order_by("-period_start")
+    attendance = Attendance.objects.select_related("employee", "employee__user").order_by("-date")[:50]
+    leaves = LeaveRequest.objects.select_related("employee", "employee__user").order_by("-start_date")
+
+    context = {
+        "total_employees": total_employees,
+        "pending_leaves": pending_leaves,
+        "monthly_payroll": monthly_payroll,
+        "expiring_contracts": expiring_contracts,
+        "employees": employees,
+        "payrolls": payrolls,
+        "attendance": attendance,
+        "leaves": leaves,
+    }
+
+    return render(request, "reports/employee_report.html", context)
+
 
 @login_required
 @group_required('HR')
 def attendance_report(request):
+    """Attendance summary by date"""
     data = Attendance.objects.values('date', 'status').annotate(total=models.Count('id')).order_by('date')
     return render(request, "reports/attendance_report.html", {"data": data})
 
+
 @login_required
+@group_required('HR')
 def salary_report(request):
-    payrolls = Payroll.objects.all().select_related("employee__user")  # ✅ optimize query
+    """Full payroll list"""
+    payrolls = Payroll.objects.select_related("employee__user").all()
     return render(request, "reports/salary_report.html", {"payrolls": payrolls})
+
+
+# ================================================================
+# Export Views
+# ================================================================
+@login_required
+@group_required('HR')
+def export_employees(request):
+    """Export employees as CSV"""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="employees.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Employee ID', 'Name', 'Department', 'Email'])
+
+    employees = Employee.objects.select_related('department', 'user')
+    for emp in employees:
+        writer.writerow([
+            emp.employee_id,
+            emp.user.get_full_name(),
+            emp.department.name if emp.department else '',
+            emp.user.email
+        ])
+    return response
+
+
+@login_required
+@group_required('HR')
+def export_attendance(request):
+    """Export attendance as CSV"""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="attendance.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Employee', 'Date', 'Check-in', 'Check-out', 'Status'])
+
+    records = Attendance.objects.select_related('employee', 'employee__user')
+    for record in records:
+        writer.writerow([
+            record.employee.user.get_full_name(),
+            record.date,
+            record.check_in,
+            record.check_out,
+            record.status
+        ])
+    return response
+
+
+@login_required
+@group_required('HR')
+def export_salary(request):
+    """Export salary report as CSV"""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="salary_report.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Employee', 'Basic Pay', 'Allowances', 'Deductions', 'Net Pay'])
+
+    payrolls = Payroll.objects.select_related('employee', 'employee__user')
+    for p in payrolls:
+        writer.writerow([
+            p.employee.user.get_full_name(),
+            p.basic_pay,
+            p.allowances,
+            p.deductions,
+            p.net_pay
+        ])
+    return response
+
+@login_required
+@group_required('HR')
+def export_payroll(request):
+    """Export payroll data as CSV"""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="payroll_report.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Employee', 'Period Start', 'Period End', 'Gross Salary', 'Net Pay', 'Status'])
+
+    payrolls = Payroll.objects.select_related('employee', 'employee__user')
+    for p in payrolls:
+        writer.writerow([
+            p.employee.user.get_full_name(),
+            p.period_start,
+            p.period_end,
+            p.gross_salary,
+            p.net_pay,
+            p.status
+        ])
+    return response
+@login_required
+@group_required('HR')
+def export_leave(request):
+    """Export leave requests as CSV"""
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="leave_requests.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow(['Employee', 'Leave Type', 'Start Date', 'End Date', 'Status'])
+
+    leaves = LeaveRequest.objects.select_related('employee', 'employee__user').all()
+    for leave in leaves:
+        writer.writerow([
+            leave.employee.user.get_full_name(),
+            leave.leave_type,
+            leave.start_date,
+            leave.end_date,
+            leave.status
+        ])
+    return response

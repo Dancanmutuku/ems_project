@@ -30,8 +30,8 @@
             <tbody>
                 {% for payroll in payrolls %}
                 <tr>
-                    <td>{{ payroll.employee.user.get_full_name }}</td>
-                    <td>{{ payroll.period_start }} - {{ payroll.period_end }}</td>
+                    <td>{{ payroll.employee.full_name }}</td>
+                    <td>{{ payroll.period_start|date:"Y-m-d" }} - {{ payroll.period_end|date:"Y-m-d" }}</td>
                     <td>{{ payroll.basic_salary|floatformat:2 }}</td>
                     <td>{{ payroll.allowances|floatformat:2 }}</td>
                     <td>{{ payroll.gross_salary|floatformat:2 }}</td>
