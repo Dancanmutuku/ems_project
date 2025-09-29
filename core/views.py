@@ -50,6 +50,19 @@ def payroll_edit(request, pk):
     else:
         form = PayrollForm(instance=payroll)
     return render(request, 'core/payroll_form.html', {'form': form})
+
+from django import forms
+from .models import Payroll
+
+class PayrollForm(forms.ModelForm):
+    class Meta:
+        model = Payroll
+        fields = '__all__'
+        widgets = {
+            'period_start': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'period_end': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        }
+
 # ================================================================
 # Logger
 # ================================================================

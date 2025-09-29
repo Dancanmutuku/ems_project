@@ -1,5 +1,6 @@
-{% extends 'base.html' %}
+{% extends 'base_hr.html' %}
 {% load widget_tweaks %}
+
 {% block content %}
 <h2>{% if form.instance.pk %}Edit Payroll{% else %}Add Payroll{% endif %}</h2>
 <form method="POST">
@@ -7,7 +8,14 @@
     {% for field in form %}
         <div class="mb-3">
             <label>{{ field.label_tag }}</label>
-            {% render_field field class="form-control" %}
+            
+            {# Check if the field is a date field #}
+            {% if field.field.widget.input_type == "date" %}
+                {% render_field field class="form-control" type="date" %}
+            {% else %}
+                {% render_field field class="form-control" %}
+            {% endif %}
+            
             {% if field.errors %}
                 <div class="text-danger">{{ field.errors }}</div>
             {% endif %}
