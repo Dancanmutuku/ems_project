@@ -709,3 +709,16 @@ def export_leave(request):
             leave.status
         ])
     return response
+
+@login_required
+def delete_notification(request, pk):
+    # Use 'user' instead of 'employee'
+    notification = get_object_or_404(Notification, pk=pk, user=request.user)
+    notification.delete()
+    return redirect('employee_dashboard')
+
+@login_required
+def employee_profile(request):
+    employee = request.user.employee_profile  # OneToOne relation
+    return render(request, 'core/my_profile.html', {'employee': employee})
+    
