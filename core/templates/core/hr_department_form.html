@@ -1,0 +1,39 @@
+{% extends 'base_hr.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">{{ department|default_if_none:"Add New Department" }}</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <!-- Department Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Department Name</label>
+                            <input type="text" name="name" id="name" class="form-control"
+                                   value="{{ department.name|default_if_none:'' }}" required>
+                        </div>
+                        <!-- Department Description -->
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Description</label>
+                            <textarea name="description" id="description" class="form-control" rows="3"
+                                      placeholder="Enter department description">{{ department.description|default_if_none:'' }}</textarea>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-success">Save</button>
+                            <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

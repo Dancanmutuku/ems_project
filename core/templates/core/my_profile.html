@@ -1,66 +1,79 @@
 {% extends "base.html" %}
-{% load static %}
-
 {% block title %}My Profile{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-  <div class="row justify-content-center">
-    <div class="col-12 col-sm-10 col-lg-8">
+<div class="container mt-4">
+  <div class="card shadow-sm border-0 position-relative">
+    
+    <!-- Floating Profile Picture -->
+    <div class="position-absolute top-0 end-0 translate-middle-y me-4 mt-4">
+      {% if employee.profile_picture %}
+        <img src="{{ employee.profile_picture.url }}" class="rounded-circle border border-3 border-white shadow"
+             style="width: 120px; height: 120px; object-fit: cover;">
+      {% else %}
+        <img src="https://via.placeholder.com/120" class="rounded-circle border border-3 border-white shadow">
+      {% endif %}
+    </div>
 
-      <!-- Profile Card -->
-      <div class="card shadow-lg border-0 rounded-4">
-        <div class="card-header bg-primary text-white text-center py-4 rounded-top-4">
-          <h3 class="mb-0">{{ employee.user.first_name }} {{ employee.user.last_name }}</h3>
-          <p class="mb-0">{{ employee.department.name }}</p>
-        </div>
-        <div class="card-body">
+    <div class="card-body pt-5">
+  <!-- Name and Job Info -->
+  <h3 class="fw-bold">{{ employee.user.get_full_name|default:employee.user.username }}</h3>
+  <p class="text-muted mb-1">{{ employee.job_title }}</p>
+  <p class="fw-bold text-dark mb-0">{{ employee.department }}</p>
 
-          <div class="row mb-3">
-            <div class="col-5 col-md-4 fw-bold">Username:</div>
-            <div class="col-7 col-md-8 text-truncate">{{ employee.user.username }}</div>
-          </div>
-
-          <div class="row mb-3">
-            <div class="col-5 col-md-4 fw-bold">Email:</div>
-            <div class="col-7 col-md-8 text-truncate">{{ employee.user.email }}</div>
-          </div>
-
-          <div class="row mb-3">
-            <div class="col-5 col-md-4 fw-bold">Phone:</div>
-            <div class="col-7 col-md-8">{{ employee.phone|default:"Not provided" }}</div>
-          </div>
-
-          <div class="row mb-3">
-            <div class="col-5 col-md-4 fw-bold">Gender:</div>
-            <div class="col-7 col-md-8">{{ employee.gender }}</div>
-          </div>
-
-          <div class="row mb-3">
-            <div class="col-5 col-md-4 fw-bold">Date of Joining:</div>
-            <div class="col-7 col-md-8">{{ employee.date_joined }}</div>
-          </div>
-
-          <div class="row mb-3">
-            <div class="col-5 col-md-4 fw-bold">Position:</div>
-            <div class="col-7 col-md-8">{{ employee.position|default:"Not assigned" }}</div>
-          </div>
-
-        </div>
-
-        <!-- Card Footer -->
-        <div class="card-footer bg-light text-center">
-          <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
-            <a href="{% url 'employee_dashboard' %}" class="btn btn-outline-secondary btn-sm mb-2 mb-sm-0">
-              <i class="bi bi-arrow-left"></i> Back to Dashboard
-            </a>
-            <a href="{% url 'my_profile' %}" class="btn btn-primary btn-sm">
-              <i class="bi bi-pencil-square"></i> Edit Profile
-            </a>
-          </div>
-        </div>
+  <hr class="my-4">
+      <!-- Profile Details Table -->
+      <h5 class="fw-bold mb-3">Profile Details</h5>
+      <div class="table-responsive">
+        <table class="table table-striped table-hover align-middle">
+          <tbody>
+            <tr>
+              <th class="text-muted w-25">Employee ID:</th>
+              <td>{{ employee.employee_id }}</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Email:</th>
+              <td>{{ employee.user.email }}</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Contact:</th>
+              <td>{{ employee.contact }}</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Date of Birth:</th>
+              <td>{{ employee.dob|date:"Y-m-d" }}</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Gender:</th>
+              <td>{{ employee.get_gender_display }}</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Address:</th>
+              <td>{{ employee.address }}</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Hire Date:</th>
+              <td>{{ employee.hire_date|date:"Y-m-d" }}</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Contract Period:</th>
+              <td>{{ employee.contract_start|date:"Y-m-d" }} → {{ employee.contract_end|date:"Y-m-d" }}</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Annual Leave:</th>
+              <td>{{ employee.annual_leave_balance }} Days</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Sick Leave:</th>
+              <td>{{ employee.sick_leave_balance }} Days</td>
+            </tr>
+            <tr>
+              <th class="text-muted">Salary:</th>
+              <td><span class="fw-bold text-success">Ksh {{ employee.salary|floatformat:2 }}</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
-
     </div>
   </div>
 </div>

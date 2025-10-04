@@ -1,0 +1,99 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HR Dashboard{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f6fa;
+        }
+
+        main {
+            flex: 1;
+        }
+
+        footer {
+            background-color: #212529;
+            color: #fff;
+            padding: 1rem 0;
+            text-align: center;
+        }
+
+        footer a {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Navbar styling */
+        .navbar.sticky-top {
+            position: sticky;
+            top: 0;
+            z-index: 1020;
+        }
+
+        .navbar-dark .navbar-nav .nav-link {
+            color: #fff;
+            font-weight: 500;
+        }
+
+        .navbar-dark .navbar-nav .nav-link:hover {
+            color: #0d6efd;
+        }
+
+        /* Align payroll link to right */
+        .navbar-nav.ml-auto, .navbar-nav.ms-auto-right {
+            margin-left: auto;
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bold" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <!-- Right-aligned links -->
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="{% url 'hr_employee_list' %}">Employees</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'hr_department_list' %}">Departments</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'salary_report' %}">Payrolls</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'hr_leave_list' %}">Leaves</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'employee_report' %}">Reports</a></li>
+                <li class="nav-item"><a class="nav-link text-danger" href="{% url 'logout' %}">Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Main content -->
+<main class="container my-4">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer>
+    &copy; {{ now|date:"Y" }} All Rights Reserved | 
+    <a href="https://x.com/dan_bnp" target="_blank">Dancan Mutuku</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

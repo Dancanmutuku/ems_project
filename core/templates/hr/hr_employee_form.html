@@ -1,0 +1,65 @@
+{% extends "base_hr.html" %}
+{% load static %}
+{% load widget_tweaks %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="card shadow-sm rounded-3">
+        <div class="card-body">
+            <h2 class="card-title mb-4 text-center">
+                {% if employee %}Edit Employee{% else %}Add Employee{% endif %}
+            </h2>
+
+            <form method="post" enctype="multipart/form-data" novalidate>
+                {% csrf_token %}
+                <div class="row g-3">
+
+                    <!-- User Account -->
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2 mb-3 text-primary fw-semibold">User Account</h5>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="Enter username" required>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control" placeholder="Enter email" required>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Enter password" required>
+                    </div>
+
+                    <!-- Employee Info -->
+                    <div class="col-12 mt-4">
+                        <h5 class="border-bottom pb-2 mb-3 text-primary fw-semibold">Employee Details</h5>
+                    </div>
+
+                    {% for field in employee_form %}
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ field.label }}</label>
+                            {% render_field field class="form-control" %}
+                            {% if field.help_text %}
+                                <small class="form-text text-muted">{{ field.help_text }}</small>
+                            {% endif %}
+                            {% for error in field.errors %}
+                                <div class="text-danger small">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Buttons -->
+                <div class="d-flex flex-column flex-sm-row gap-2 justify-content-end mt-4">
+                    <button type="submit" class="btn btn-primary px-4">💾 Save</button>
+                    <a href="{% url 'hr_employee_list' %}" class="btn btn-outline-secondary px-4">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
