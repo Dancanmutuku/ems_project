@@ -353,7 +353,7 @@ def leave_request_create(request):
             leave.requested_at = timezone.now()
             leave.save()
 
-            return redirect('leave_list')
+            return redirect('hr_leave_list')
 
     else:
         form = LeaveRequestForm()
@@ -364,12 +364,21 @@ def leave_request_create(request):
     return render(request, "core/leave_request_form.html", {"form": form, "is_hr": is_hr})
 @login_required
 def leave_list(request):
+    # Check if user is HR
     if is_hr(request.user):
+        # HR sees all leave requests
         leaves = LeaveRequest.objects.select_related("employee").all().order_by("-requested_at")
+        template = "core/hr_leave_list.html"  # HR uses hr_leave_list.html
+        is_hr_admin = True
     else:
+        # Regular employee sees only their own leave requests
         emp = get_object_or_404(Employee, user=request.user)
         leaves = LeaveRequest.objects.filter(employee=emp).order_by("-requested_at")
-    return render(request, "core/leave_list.html", {"leaves": leaves})
+        template = "core/leave_list.html"  # Employee uses leave_list.html
+        is_hr_admin = False
+
+    return render(request, template, {"leaves": leaves, "is_hr_admin": is_hr_admin})
+
 
 @login_required
 @group_required("HR")
