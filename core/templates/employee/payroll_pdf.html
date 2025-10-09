@@ -47,16 +47,27 @@
             margin-top: 40px;
             display: flex;
             justify-content: space-between;
+            flex-wrap: wrap;
         }
         .signature {
             text-align: center;
             width: 45%;
+            min-width: 200px;
+            margin-top: 20px;
         }
         .footer {
             text-align: center;
             font-size: 12px;
             margin-top: 30px;
             color: #777;
+        }
+        @media print {
+            body {
+                margin: 10px;
+            }
+            .signature-section {
+                flex-wrap: nowrap;
+            }
         }
     </style>
 </head>
@@ -76,7 +87,7 @@
 <table>
     <tr>
         <td><strong>Employee Name:</strong> {{ employee.user.get_full_name|default:employee.user.username }}</td>
-        <td><strong>Employee ID:</strong> {{ employee.id }}</td>
+        <td><strong>Employee ID:</strong> {{ employee.employee_id|default:employee.id }}</td>
     </tr>
     <tr>
         <td><strong>Department:</strong> {{ employee.department.name|default:"N/A" }}</td>

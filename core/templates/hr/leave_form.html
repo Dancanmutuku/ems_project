@@ -7,8 +7,8 @@
 <div class="container mt-5">
   <div class="row justify-content-center">
     <div class="col-12 col-sm-10 col-md-8">
-      <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white">
+      <div class="card shadow-lg rounded-4">
+        <div class="card-header bg-primary text-white text-center">
           <h4 class="mb-0">Apply for Leave</h4>
         </div>
         <div class="card-body">
@@ -18,7 +18,7 @@
             {% if is_hr %}
             <!-- Employee Dropdown for HR -->
             <div class="mb-3">
-              <label for="id_employee" class="form-label">Employee</label>
+              <label for="id_employee" class="form-label fw-semibold">Employee</label>
               {{ form.employee|add_class:"form-select" }}
               {% if form.employee.errors %}
                 <div class="text-danger small mt-1">{{ form.employee.errors }}</div>
@@ -28,7 +28,7 @@
 
             <!-- Leave Type -->
             <div class="mb-3">
-              <label for="id_leave_type" class="form-label">Leave Type</label>
+              <label for="id_leave_type" class="form-label fw-semibold">Leave Type</label>
               {{ form.leave_type|add_class:"form-select" }}
               {% if form.leave_type.errors %}
                 <div class="text-danger small mt-1">{{ form.leave_type.errors }}</div>
@@ -37,7 +37,7 @@
 
             <!-- Start Date -->
             <div class="mb-3">
-              <label for="id_start_date" class="form-label">Start Date</label>
+              <label for="id_start_date" class="form-label fw-semibold">Start Date</label>
               {{ form.start_date|add_class:"form-control" }}
               {% if form.start_date.errors %}
                 <div class="text-danger small mt-1">{{ form.start_date.errors }}</div>
@@ -46,7 +46,7 @@
 
             <!-- End Date -->
             <div class="mb-3">
-              <label for="id_end_date" class="form-label">End Date</label>
+              <label for="id_end_date" class="form-label fw-semibold">End Date</label>
               {{ form.end_date|add_class:"form-control" }}
               {% if form.end_date.errors %}
                 <div class="text-danger small mt-1">{{ form.end_date.errors }}</div>
@@ -55,7 +55,7 @@
 
             <!-- Reason -->
             <div class="mb-3">
-              <label for="id_reason" class="form-label">Reason</label>
+              <label for="id_reason" class="form-label fw-semibold">Reason</label>
               {{ form.reason|add_class:"form-control" }}
               {% if form.reason.errors %}
                 <div class="text-danger small mt-1">{{ form.reason.errors }}</div>
@@ -63,10 +63,13 @@
             </div>
 
             <!-- Buttons -->
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
-              <button type="submit" class="btn btn-success mb-2 mb-sm-0">Submit</button>
-              <a href="{% url 'leave_list' %}" class="btn btn-secondary">Cancel</a>
+            <div class="d-flex flex-column flex-sm-row gap-2 justify-content-start mt-3">
+              <button type="submit" class="btn btn-success px-4">
+                <i class="bi bi-check-circle me-1"></i> Submit
+              </button>
+              <a href="{% url 'leave_list' %}" class="btn btn-secondary px-4">Cancel</a>
             </div>
+
           </form>
         </div>
       </div>
@@ -74,4 +77,3 @@
   </div>
 </div>
 {% endblock %}
-

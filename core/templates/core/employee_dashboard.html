@@ -2,46 +2,39 @@
 {% block title %}Employee Dashboard{% endblock %}
 
 {% block content %}
-<div class="container-fluid mt-4">
+<div class="container mt-5">
 
-  <!-- Welcome Header -->
-  <div class="row mb-4">
-    <div class="col-12">
-      <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body d-flex flex-column flex-md-row align-items-center gap-3 justify-content-between">
+  <!-- Welcome Card -->
+  <div class="card shadow-lg border-0 rounded-4 mb-4">
+    <div class="card-body d-flex flex-column flex-md-row align-items-center gap-3 justify-content-between">
 
-          <!-- Profile Info -->
-          <div class="d-flex align-items-center gap-3">
-            <div>
-              {% if employee.profile_picture %}
-                <img src="{{ employee.profile_picture.url }}" class="rounded-circle shadow border" width="80" height="80" alt="Profile Picture">
-              {% else %}
-                <img src="https://via.placeholder.com/80" class="rounded-circle shadow border" alt="Default Profile">
-              {% endif %}
-            </div>
-            <div>
-              <h4 class="mb-1 fw-bold">Welcome, {{ employee.user.get_full_name|default:employee.user.username }}</h4>
-              <small class="text-muted">{{ employee.job_title }} | {{ employee.department }}</small><br>
-              <small class="text-muted">Contract: {{ employee.hire_date|date:"Y-m-d" }} → {{ employee.contract_end|date:"Y-m-d" }}</small>
-            </div>
-          </div>
+      <!-- Profile Info -->
+      <div class="d-flex align-items-center gap-3">
+        {% if employee.profile_picture %}
+          <img src="{{ employee.profile_picture.url }}" class="rounded-circle shadow border" width="80" height="80" alt="Profile Picture">
+        {% else %}
+          <img src="https://via.placeholder.com/80" class="rounded-circle shadow border" alt="Default Profile">
+        {% endif %}
+        <div>
+          <h4 class="mb-1 fw-bold">Welcome, {{ employee.user.get_full_name|default:employee.user.username }}</h4>
+          <small class="text-muted">{{ employee.job_title }} | {{ employee.department }}</small><br>
+          <small class="text-muted">Contract: {{ employee.hire_date|date:"Y-m-d" }} → {{ employee.contract_end|date:"Y-m-d" }}</small>
+        </div>
+      </div>
 
-          <!-- Quick Stats -->
-          <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
-            <div class="badge bg-primary py-2 px-3 rounded-3 shadow-sm">
-              <i class="bi bi-currency-dollar me-1"></i> Salary: <strong>Ksh {{ employee.salary }}</strong>
-            </div>
-            <div class="badge bg-success py-2 px-3 rounded-3 shadow-sm">
-              <i class="bi bi-person-check me-1"></i> Attendance: <strong>{{ total_present }}</strong>
-            </div>
-            <div class="badge bg-warning text-dark py-2 px-3 rounded-3 shadow-sm">
-              <i class="bi bi-airplane me-1"></i> Leave: <strong>{{ employee.annual_leave_balance }} Days</strong>
-            </div>
-            <div class="badge bg-danger py-2 px-3 rounded-3 shadow-sm">
-              <i class="bi bi-bell me-1"></i> Notifications: <strong>{{ notifications|length }}</strong>
-            </div>
-          </div>
-
+      <!-- Quick Stats -->
+      <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+        <div class="badge bg-primary py-2 px-3 rounded-3 shadow-sm">
+          <i class="bi bi-currency-dollar me-1"></i> Salary: <strong>Ksh {{ employee.salary }}</strong>
+        </div>
+        <div class="badge bg-success py-2 px-3 rounded-3 shadow-sm">
+          <i class="bi bi-person-check me-1"></i> Attendance: <strong>{{ total_present }}</strong>
+        </div>
+        <div class="badge bg-warning text-dark py-2 px-3 rounded-3 shadow-sm">
+          <i class="bi bi-airplane me-1"></i> Leave: <strong>{{ employee.annual_leave_balance }} Days</strong>
+        </div>
+        <div class="badge bg-danger py-2 px-3 rounded-3 shadow-sm">
+          <i class="bi bi-bell me-1"></i> Notifications: <strong>{{ notifications|length }}</strong>
         </div>
       </div>
     </div>
@@ -52,42 +45,42 @@
 
     <!-- Recent Payrolls -->
     <div class="col-12 col-lg-6">
-      <div class="card shadow-sm border-0 rounded-4">
+      <div class="card shadow-lg border-0 rounded-4">
         <div class="card-header bg-success text-white d-flex justify-content-between align-items-center rounded-top-4">
           <span><i class="bi bi-wallet2"></i> Recent Payrolls</span>
           <a href="{% url 'employee_payroll' %}" class="btn btn-light btn-sm">View All</a>
         </div>
         <div class="card-body p-0">
           {% if payrolls %}
-            <div class="table-responsive">
-              <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light">
-                  <tr>
-                    <th>Period</th>
-                    <th>Net Pay</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for p in payrolls %}
-                  <tr>
-                    <td>{{ p.period_start|date:"Y-m-d" }} - {{ p.period_end|date:"Y-m-d" }}</td>
-                    <td>Ksh {{ p.net_pay }}</td>
-                    <td>
-                      <span class="badge 
-                        {% if p.status|lower == 'paid' %}bg-success
-                        {% elif p.status|lower == 'pending' %}bg-warning text-dark
-                        {% else %}bg-secondary{% endif %}">
-                        {{ p.status|capfirst }}
-                      </span>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
+          <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Period</th>
+                  <th>Net Pay</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for p in payrolls %}
+                <tr>
+                  <td>{{ p.period_start|date:"Y-m-d" }} - {{ p.period_end|date:"Y-m-d" }}</td>
+                  <td>Ksh {{ p.net_pay }}</td>
+                  <td>
+                    <span class="badge 
+                      {% if p.status|lower == 'paid' %}bg-success
+                      {% elif p.status|lower == 'pending' %}bg-warning text-dark
+                      {% else %}bg-secondary{% endif %}">
+                      {{ p.status|capfirst }}
+                    </span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
           {% else %}
-            <p class="text-muted p-3">No payroll records yet.</p>
+          <p class="text-muted p-3 mb-0">No payroll records yet.</p>
           {% endif %}
         </div>
       </div>
@@ -95,45 +88,45 @@
 
     <!-- Attendance -->
     <div class="col-12 col-lg-6">
-      <div class="card shadow-sm border-0 rounded-4">
+      <div class="card shadow-lg border-0 rounded-4">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center rounded-top-4">
           <span><i class="bi bi-calendar-check"></i> My Attendance</span>
           <a href="{% url 'add_attendance' %}" class="btn btn-light btn-sm"><i class="bi bi-plus-circle"></i> Add</a>
         </div>
         <div class="card-body p-0">
           {% if attendance_records %}
-            <div class="table-responsive">
-              <table class="table table-bordered mb-0 align-middle">
-                <thead class="table-light">
-                  <tr>
-                    <th>Date</th>
-                    <th>Check-in</th>
-                    <th>Check-out</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {% for record in attendance_records %}
-                  <tr>
-                    <td>{{ record.date|date:"Y-m-d" }}</td>
-                    <td>{{ record.check_in|default:"--" }}</td>
-                    <td>{{ record.check_out|default:"--" }}</td>
-                    <td>
-                      <span class="badge 
-                        {% if record.status == 'Present' %}bg-success
-                        {% elif record.status == 'Absent' %}bg-danger
-                        {% elif record.status == 'Leave' %}bg-warning text-dark
-                        {% else %}bg-secondary{% endif %}">
-                        {{ record.status }}
-                      </span>
-                    </td>
-                  </tr>
-                  {% endfor %}
-                </tbody>
-              </table>
-            </div>
+          <div class="table-responsive">
+            <table class="table table-bordered mb-0 align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Date</th>
+                  <th>Check-in</th>
+                  <th>Check-out</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for record in attendance_records %}
+                <tr>
+                  <td>{{ record.date|date:"Y-m-d" }}</td>
+                  <td>{{ record.check_in|default:"--" }}</td>
+                  <td>{{ record.check_out|default:"--" }}</td>
+                  <td>
+                    <span class="badge 
+                      {% if record.status == 'Present' %}bg-success
+                      {% elif record.status == 'Absent' %}bg-danger
+                      {% elif record.status == 'Leave' %}bg-warning text-dark
+                      {% else %}bg-secondary{% endif %}">
+                      {{ record.status }}
+                    </span>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
           {% else %}
-            <p class="text-muted p-3">No attendance records found.</p>
+          <p class="text-muted p-3 mb-0">No attendance records found.</p>
           {% endif %}
         </div>
       </div>
@@ -141,7 +134,7 @@
 
     <!-- Leave Requests -->
     <div class="col-12 col-lg-6">
-      <div class="card shadow-sm border-0 rounded-4">
+      <div class="card shadow-lg border-0 rounded-4">
         <div class="card-header bg-warning d-flex justify-content-between align-items-center rounded-top-4">
           <span><i class="bi bi-airplane"></i> My Leave Requests</span>
           <div class="d-flex gap-2 flex-wrap">
@@ -151,22 +144,22 @@
         </div>
         <div class="card-body p-0">
           {% if leaves %}
-            <ul class="list-group list-group-flush mb-0">
-              {% for leave in leaves %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <span>{{ leave.leave_type }}: {{ leave.start_date|date:"Y-m-d" }} → {{ leave.end_date|date:"Y-m-d" }}</span>
-                  <span class="badge 
-                    {% if leave.status == 'pending' %}bg-warning text-dark
-                    {% elif leave.status == 'approved' %}bg-success
-                    {% elif leave.status == 'declined' %}bg-danger
-                    {% else %}bg-secondary{% endif %}">
-                    {{ leave.get_status_display }}
-                  </span>
-                </li>
-              {% endfor %}
-            </ul>
+          <ul class="list-group list-group-flush mb-0">
+            {% for leave in leaves %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <span>{{ leave.leave_type }}: {{ leave.start_date|date:"Y-m-d" }} → {{ leave.end_date|date:"Y-m-d" }}</span>
+              <span class="badge 
+                {% if leave.status == 'pending' %}bg-warning text-dark
+                {% elif leave.status == 'approved' %}bg-success
+                {% elif leave.status == 'declined' %}bg-danger
+                {% else %}bg-secondary{% endif %}">
+                {{ leave.get_status_display }}
+              </span>
+            </li>
+            {% endfor %}
+          </ul>
           {% else %}
-            <p class="text-muted p-3">No leave requests yet.</p>
+          <p class="text-muted p-3 mb-0">No leave requests yet.</p>
           {% endif %}
         </div>
       </div>
@@ -174,29 +167,29 @@
 
     <!-- Notifications -->
     <div class="col-12 col-lg-6">
-      <div class="card shadow-sm border-0 rounded-4">
+      <div class="card shadow-lg border-0 rounded-4">
         <div class="card-header bg-danger text-white rounded-top-4">
           <i class="bi bi-bell"></i> Notifications
         </div>
         <div class="card-body p-0">
           {% if notifications %}
-            <ul class="list-group list-group-flush mb-0">
-              {% for n in notifications %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                  <div>
-                    <strong>{{ n.title }}</strong><br>
-                    <small class="text-muted">{{ n.created_at|date:"M d, Y H:i" }}</small>
-                  </div>
-                  <a href="{% url 'delete_notification' n.pk %}" 
-                     class="btn btn-sm btn-outline-danger" 
-                     onclick="return confirm('Are you sure you want to delete this notification?');">
-                     Delete
-                  </a>
-                </li>
-              {% endfor %}
-            </ul>
+          <ul class="list-group list-group-flush mb-0">
+            {% for n in notifications %}
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <strong>{{ n.title }}</strong><br>
+                <small class="text-muted">{{ n.created_at|date:"M d, Y H:i" }}</small>
+              </div>
+              <a href="{% url 'delete_notification' n.pk %}" 
+                 class="btn btn-sm btn-outline-danger" 
+                 onclick="return confirm('Are you sure you want to delete this notification?');">
+                 Delete
+              </a>
+            </li>
+            {% endfor %}
+          </ul>
           {% else %}
-            <p class="text-muted p-3">No notifications yet.</p>
+          <p class="text-muted p-3 mb-0">No notifications yet.</p>
           {% endif %}
         </div>
       </div>

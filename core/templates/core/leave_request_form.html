@@ -4,71 +4,119 @@
 {% block title %}Apply for Leave{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<style>
+  /* Modern Form Styling */
+  .leave-form-container {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      padding: 2rem;
+      margin-top: 3rem;
+  }
+
+  .form-label {
+      font-weight: 600;
+      color: #333;
+  }
+
+  .form-control, .form-select {
+      border-radius: 0.5rem;
+      border: 1px solid #ced4da;
+      transition: all 0.2s ease-in-out;
+  }
+
+  .form-control:focus, .form-select:focus {
+      border-color: #0d6efd;
+      box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.25);
+  }
+
+  .card-header {
+      border-top-left-radius: 1rem !important;
+      border-top-right-radius: 1rem !important;
+  }
+
+  .btn {
+      border-radius: 50px;
+      padding: 0.45rem 1.2rem;
+      transition: all 0.2s ease;
+  }
+
+  .btn:hover {
+      transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+      .leave-form-container {
+          padding: 1.5rem;
+      }
+  }
+</style>
+
+<div class="container">
   <div class="row justify-content-center">
-    <div class="col-12 col-sm-10 col-md-8">
-      <div class="card shadow-lg">
-        <div class="card-header bg-primary text-white">
-          <h4 class="mb-0">Apply for Leave</h4>
+    <div class="col-12 col-sm-10 col-md-8 col-lg-6">
+      <div class="leave-form-container">
+        <div class="text-center mb-4">
+          <h3 class="fw-bold text-primary">Apply for Leave</h3>
+          <p class="text-muted mb-0">Fill in the details below to submit your leave request.</p>
         </div>
-        <div class="card-body">
-          <form method="post" novalidate>
-            {% csrf_token %}
 
-            {% if is_hr %}
-            <!-- Employee Dropdown for HR -->
-            <div class="mb-3">
-              <label for="id_employee" class="form-label">Employee</label>
-              {{ form.employee|add_class:"form-select" }}
-              {% if form.employee.errors %}
-                <div class="text-danger small mt-1">{{ form.employee.errors }}</div>
-              {% endif %}
-            </div>
+        <form method="post" novalidate>
+          {% csrf_token %}
+
+          {% if is_hr %}
+          <!-- Employee Dropdown for HR -->
+          <div class="mb-3">
+            <label for="id_employee" class="form-label">Employee</label>
+            {{ form.employee|add_class:"form-select" }}
+            {% if form.employee.errors %}
+              <div class="text-danger small mt-1">{{ form.employee.errors }}</div>
             {% endif %}
+          </div>
+          {% endif %}
 
-            <!-- Leave Type -->
-            <div class="mb-3">
-              <label for="id_leave_type" class="form-label">Leave Type</label>
-              {{ form.leave_type|add_class:"form-select" }}
-              {% if form.leave_type.errors %}
-                <div class="text-danger small mt-1">{{ form.leave_type.errors }}</div>
-              {% endif %}
-            </div>
+          <!-- Leave Type -->
+          <div class="mb-3">
+            <label for="id_leave_type" class="form-label">Leave Type</label>
+            {{ form.leave_type|add_class:"form-select" }}
+            {% if form.leave_type.errors %}
+              <div class="text-danger small mt-1">{{ form.leave_type.errors }}</div>
+            {% endif %}
+          </div>
 
-            <!-- Start Date -->
-            <div class="mb-3">
-              <label for="id_start_date" class="form-label">Start Date</label>
-              {{ form.start_date|add_class:"form-control" }}
-              {% if form.start_date.errors %}
-                <div class="text-danger small mt-1">{{ form.start_date.errors }}</div>
-              {% endif %}
-            </div>
+          <!-- Start Date -->
+          <div class="mb-3">
+            <label for="id_start_date" class="form-label">Start Date</label>
+            {{ form.start_date|add_class:"form-control" }}
+            {% if form.start_date.errors %}
+              <div class="text-danger small mt-1">{{ form.start_date.errors }}</div>
+            {% endif %}
+          </div>
 
-            <!-- End Date -->
-            <div class="mb-3">
-              <label for="id_end_date" class="form-label">End Date</label>
-              {{ form.end_date|add_class:"form-control" }}
-              {% if form.end_date.errors %}
-                <div class="text-danger small mt-1">{{ form.end_date.errors }}</div>
-              {% endif %}
-            </div>
+          <!-- End Date -->
+          <div class="mb-3">
+            <label for="id_end_date" class="form-label">End Date</label>
+            {{ form.end_date|add_class:"form-control" }}
+            {% if form.end_date.errors %}
+              <div class="text-danger small mt-1">{{ form.end_date.errors }}</div>
+            {% endif %}
+          </div>
 
-            <!-- Reason -->
-            <div class="mb-3">
-              <label for="id_reason" class="form-label">Reason</label>
-              {{ form.reason|add_class:"form-control" }}
-              {% if form.reason.errors %}
-                <div class="text-danger small mt-1">{{ form.reason.errors }}</div>
-              {% endif %}
-            </div>
+          <!-- Reason -->
+          <div class="mb-3">
+            <label for="id_reason" class="form-label">Reason</label>
+            {{ form.reason|add_class:"form-control" }}
+            {% if form.reason.errors %}
+              <div class="text-danger small mt-1">{{ form.reason.errors }}</div>
+            {% endif %}
+          </div>
 
-            <!-- Buttons -->
-            <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
-              <button type="submit" class="btn btn-success mb-2 mb-sm-0">Submit</button>
-              <a href="{% url 'leave_list' %}" class="btn btn-secondary">Cancel</a>
-            </div>
-          </form>
-        </div>
+          <!-- Buttons -->
+          <div class="d-grid gap-2 d-sm-flex justify-content-sm-start">
+            <button type="submit" class="btn btn-success">Submit</button>
+            <a href="{% url 'leave_list' %}" class="btn btn-secondary">Cancel</a>
+          </div>
+        </form>
       </div>
     </div>
   </div>

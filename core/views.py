@@ -199,6 +199,8 @@ def hr_employee_list(request):
 @login_required
 @group_required('HR')
 def hr_employee_create(request):
+    """Create a new employee along with a linked Django user."""
+    employee_form = None
     if request.method == "POST":
         username = request.POST.get("username")
         email = request.POST.get("email")
@@ -207,10 +209,7 @@ def hr_employee_create(request):
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
         else:
-            # Create the Django User
             user = User.objects.create_user(username=username, email=email, password=password)
-            
-            # Create the Employee linked to the User
             employee_form = EmployeeForm(request.POST, request.FILES)
             if employee_form.is_valid():
                 employee = employee_form.save(commit=False)
@@ -220,7 +219,7 @@ def hr_employee_create(request):
                 return redirect('hr_employee_list')
             else:
                 messages.error(request, "Please fix the errors below.")
-    else:
+    if not employee_form:
         employee_form = EmployeeForm()
 
     return render(request, "hr/hr_employee_form.html", {
@@ -232,13 +231,16 @@ def hr_employee_create(request):
 def hr_employee_edit(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     EmployeeFormClass = modelform_factory(Employee, exclude=['user'])
+    form = None
     if request.method == "POST":
         form = EmployeeFormClass(request.POST, request.FILES, instance=employee)
         if form.is_valid():
             form.save()
             messages.success(request, "Employee updated successfully.")
             return redirect("hr_employee_list")
-    else:
+        else:
+            messages.error(request, "Please fix the errors below.")
+    if not form:
         form = EmployeeFormClass(instance=employee)
 
     return render(request, "hr/hr_employee_form.html", {
@@ -255,6 +257,7 @@ def hr_employee_delete(request, pk):
         messages.success(request, "Employee deleted successfully.")
         return redirect("hr_employee_list")
     return render(request, "core/confirm_delete.html", {"object": employee, "type": "Employee"})
+
 # ================================================================
 # HR Management: Department CRUD
 # ================================================================

@@ -1,36 +1,134 @@
 {% extends "base_hr.html" %}
+
 {% block content %}
-<div class="container mt-4">
-    <h2 class="mb-4">Departments</h2>
+<style>
+    /* Modern Department List Styles */
+    .departments-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
 
-    <div class="d-flex justify-content-between mb-3">
-        <a href="{% url 'hr_department_create' %}" class="btn btn-primary">➕ Add Department</a>
+    .departments-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    .departments-header {
+        background: linear-gradient(135deg, #007bff, #6610f2);
+        color: #fff;
+        padding: 1rem 1.5rem;
+        border-radius: 1rem 1rem 0 0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .departments-header h4 {
+        margin: 0;
+        font-weight: 600;
+    }
+
+    .btn-add {
+        background: linear-gradient(135deg, #28a745, #218838);
+        border: none;
+        border-radius: 50px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+    .btn-add:hover {
+        background: linear-gradient(135deg, #218838, #1e7e34);
+        transform: translateY(-2px);
+    }
+
+    .table-modern {
+        border-radius: 0.8rem;
+        overflow: hidden;
+    }
+
+    .table-modern th {
+        background-color: #343a40 !important;
+        color: #fff;
+        font-weight: 600;
+        vertical-align: middle;
+    }
+
+    .table-modern td {
+        vertical-align: middle;
+    }
+
+    .btn-warning, .btn-danger {
+        border: none;
+        border-radius: 50px;
+        padding: 0.3rem 0.9rem;
+        font-weight: 500;
+        transition: 0.2s ease;
+    }
+
+    .btn-warning:hover {
+        background-color: #e0a800;
+        color: #fff;
+        transform: scale(1.05);
+    }
+
+    .btn-danger:hover {
+        background-color: #c82333;
+        color: #fff;
+        transform: scale(1.05);
+    }
+
+    @media (max-width: 767px) {
+        .departments-header {
+            flex-direction: column;
+            gap: 0.8rem;
+            text-align: center;
+        }
+        .btn-add {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="container my-5">
+    <div class="card departments-card shadow-sm">
+        <div class="departments-header">
+            <h4>Departments</h4>
+            <a href="{% url 'hr_department_create' %}" class="btn btn-add">➕ Add Department</a>
+        </div>
+
+        <div class="card-body p-0">
+            {% if departments %}
+            <div class="table-responsive">
+                <table class="table table-modern table-striped table-hover align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Description</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for dept in departments %}
+                        <tr>
+                            <td>{{ dept.name }}</td>
+                            <td>{{ dept.description|default:"—" }}</td>
+                            <td class="text-center">
+                                <a href="{% url 'hr_department_edit' dept.pk %}" class="btn btn-sm btn-warning me-1">Edit</a>
+                                <a href="{% url 'hr_department_delete' dept.pk %}" class="btn btn-sm btn-danger">Delete</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="p-4 text-center">
+                <div class="alert alert-info mb-0">No departments found.</div>
+            </div>
+            {% endif %}
+        </div>
     </div>
-
-    {% if departments %}
-    <table class="table table-striped table-bordered">
-        <thead class="table-dark">
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for dept in departments %}
-            <tr>
-                <td>{{ dept.name }}</td>
-                <td>{{ dept.description|default:"-" }}</td>
-                <td>
-                    <a href="{% url 'hr_department_edit' dept.pk %}" class="btn btn-sm btn-warning">Edit</a>
-                    <a href="{% url 'hr_department_delete' dept.pk %}" class="btn btn-sm btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <div class="alert alert-info">No departments found.</div>
-    {% endif %}
 </div>
 {% endblock %}

@@ -2,15 +2,86 @@
 {% load static %}
 
 {% block content %}
-<div class="container my-4">
+<style>
+    /* Modern Form Styling */
+    .form-card {
+        border: none;
+        border-radius: 1rem;
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .form-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .form-card .card-header {
+        background: linear-gradient(135deg, #007bff, #6610f2);
+        color: #fff;
+        font-weight: 600;
+        text-align: center;
+        padding: 1rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+    }
+
+    input.form-control,
+    textarea.form-control {
+        border-radius: 0.5rem;
+        border: 1px solid #dee2e6;
+        box-shadow: none;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input.form-control:focus,
+    textarea.form-control:focus {
+        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+
+    .btn {
+        border-radius: 50px;
+        padding: 0.5rem 1.2rem;
+        font-weight: 500;
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #28a745, #218838);
+        border: none;
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #218838, #1e7e34);
+    }
+
+    .btn-secondary {
+        background: linear-gradient(135deg, #6c757d, #5a6268);
+        border: none;
+    }
+
+    .btn-secondary:hover {
+        background: linear-gradient(135deg, #5a6268, #545b62);
+    }
+
+    @media (max-width: 767px) {
+        .form-card .card-header h5 {
+            font-size: 1.1rem;
+        }
+    }
+</style>
+
+<div class="container my-5">
     <div class="row justify-content-center">
         <div class="col-12 col-sm-10 col-md-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
+            <div class="card form-card shadow-sm">
+                <div class="card-header">
                     <h5 class="mb-0">{{ department|default_if_none:"Add New Department" }}</h5>
                 </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" novalidate>
                         {% csrf_token %}
                         <!-- Department Name -->
                         <div class="mb-3">
@@ -18,6 +89,7 @@
                             <input type="text" name="name" id="name" class="form-control"
                                    value="{{ department.name|default_if_none:'' }}" required>
                         </div>
+
                         <!-- Department Description -->
                         <div class="mb-3">
                             <label for="description" class="form-label">Description</label>
@@ -26,9 +98,9 @@
                         </div>
 
                         <!-- Buttons -->
-                        <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">Save</button>
-                            <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary">Cancel</a>
+                        <div class="d-flex justify-content-between mt-4">
+                            <a href="{% url 'hr_dashboard' %}" class="btn btn-secondary px-4">Cancel</a>
+                            <button type="submit" class="btn btn-success px-4">Save Department</button>
                         </div>
                     </form>
                 </div>

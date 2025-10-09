@@ -1,61 +1,100 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-  <h3 class="mb-4">Leave Requests</h3>
+<style>
+  /* Modern Leave Requests Styling for Employee */
+  .leave-container {
+      background: #ffffff;
+      border-radius: 1rem;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      padding: 2rem;
+      margin-top: 2rem;
+  }
 
-  <div class="table-responsive">
-    <table class="table table-bordered table-striped table-hover align-middle mb-0">
-      <thead class="table-dark">
-        <tr>
-          <th>Employee</th>
-          <th>Leave Type</th>
-          <th>Start Date</th>
-          <th>End Date</th>
-          <th>Status</th>
-          {% if is_hr_admin %}
-          <th>Actions</th>
-          {% endif %}
-        </tr>
-      </thead>
-      <tbody>
-        {% for leave in leaves %}
-        <tr>
-          <td class="text-truncate" style="max-width: 150px;">
-            {{ leave.employee.user.get_full_name|default:leave.employee.user.username }}
-          </td>
-          <td class="text-truncate" style="max-width: 120px;">{{ leave.leave_type }}</td>
-          <td>{{ leave.start_date|date:"M d, Y" }}</td>
-          <td>{{ leave.end_date|date:"M d, Y" }}</td>
-          <td>
-            {% if leave.status == "P" %}
-              <span class="badge bg-warning text-dark">Pending</span>
-            {% elif leave.status == "A" %}
-              <span class="badge bg-success">Approved</span>
-            {% else %}
-              <span class="badge bg-danger">Rejected</span>
-            {% endif %}
-          </td>
-          {% if is_hr_admin %}
-          <td class="d-flex flex-column flex-sm-row gap-1">
-            {% if leave.status == "P" %}
-              <a href="{% url 'leave_process' leave.pk 'approve' %}" class="btn btn-success btn-sm mb-1 mb-sm-0">Approve</a>
-              <a href="{% url 'leave_process' leave.pk 'reject' %}" class="btn btn-danger btn-sm">Reject</a>
-            {% else %}
-              <em class="text-muted">Processed</em>
-            {% endif %}
-          </td>
-          {% endif %}
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="{% if is_hr_admin %}6{% else %}5{% endif %}" class="text-center text-muted">
-            No leave requests found.
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+  .leave-header h3 {
+      font-weight: 600;
+      color: #343a40;
+  }
+
+  .table-modern th {
+      background: linear-gradient(135deg, #0d6efd, #6610f2);
+      color: #fff;
+      text-align: center;
+      vertical-align: middle;
+  }
+
+  .table-modern td {
+      vertical-align: middle;
+      text-align: center;
+      background-color: #fafafa;
+  }
+
+  .table-modern tr:hover td {
+      background-color: #f1f5ff;
+      transition: background 0.2s ease-in;
+  }
+
+  .badge {
+      border-radius: 50px;
+      padding: 0.4rem 0.8rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+  }
+
+  @media (max-width: 768px) {
+      .leave-container {
+          padding: 1rem;
+      }
+      .table-modern td,
+      .table-modern th {
+          font-size: 0.9rem;
+      }
+  }
+</style>
+
+<div class="container">
+  <div class="leave-container">
+    <div class="leave-header mb-3">
+      <h3>My Leave Requests</h3>
+      <a href="{% url 'employee_leave_add' %}" class="btn btn-primary btn-sm">Submit New Leave</a>
+    </div>
+
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped table-modern align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Leave Type</th>
+            <th>Start Date</th>
+            <th>End Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for leave in leaves %}
+          <tr>
+            <td>{{ leave.leave_type }}</td>
+            <td>{{ leave.start_date|date:"M d, Y" }}</td>
+            <td>{{ leave.end_date|date:"M d, Y" }}</td>
+            <td>
+              {% if leave.status == "P" %}
+                <span class="badge bg-warning text-dark">Pending</span>
+              {% elif leave.status == "A" %}
+                <span class="badge bg-success">Approved</span>
+              {% else %}
+                <span class="badge bg-danger">Rejected</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="4" class="text-center text-muted py-3">
+              You have no leave requests.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 {% endblock %}

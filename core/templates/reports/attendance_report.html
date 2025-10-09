@@ -1,14 +1,42 @@
 {% extends "base_hr.html" %}
+
 {% block content %}
-<h2>Monthly Attendance Report</h2>
-<table border="1">
-  <tr><th>Date</th><th>Status</th><th>Total</th></tr>
-  {% for row in data %}
-  <tr>
-    <td>{{ row.date }}</td>
-    <td>{{ row.status }}</td>
-    <td>{{ row.total }}</td>
-  </tr>
-  {% endfor %}
-</table>
+<div class="container mt-4">
+    <h2 class="mb-4">Monthly Attendance Report</h2>
+
+    {% if data %}
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered table-hover align-middle">
+            <thead class="table-dark">
+                <tr>
+                    <th>Date</th>
+                    <th>Status</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in data %}
+                <tr>
+                    <td>{{ row.date|date:"Y-m-d" }}</td>
+                    <td>
+                        <span class="badge 
+                            {% if row.status == 'Present' %}bg-success
+                            {% elif row.status == 'Absent' %}bg-danger
+                            {% elif row.status == 'Leave' %}bg-warning text-dark
+                            {% else %}bg-secondary{% endif %}">
+                            {{ row.status }}
+                        </span>
+                    </td>
+                    <td>{{ row.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info text-center">
+        No attendance data available for this month.
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
