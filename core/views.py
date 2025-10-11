@@ -472,12 +472,12 @@ def leave_process(request, pk, action):
 
     if action == "approve":
         leave.status = "A"
-        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} has been approved."
+        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} has been approved. Enjoy your leave."
         leave_badge = "Approved"
         msg_level = messages.SUCCESS
     elif action == "reject":
         leave.status = "R"
-        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} has been rejected."
+        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} has been rejected. Please reschedule."
         leave_badge = "Rejected"
         msg_level = messages.ERROR
     elif action == "pending":
@@ -512,7 +512,7 @@ def leave_process(request, pk, action):
                             f"Leave Type: {leave.leave_type}\n"
                             f"Start Date: {leave.start_date}\n"
                             f"End Date: {leave.end_date}\n\n"
-                            f"Best regards,\nHR Department",
+                            f"Best regards,\nHR Manager",
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[recipient_email],
                     fail_silently=False,
