@@ -52,7 +52,7 @@ urlpatterns = [
     # Leave Management (Employee)
     # ==========================================================
     path("leaves/list/", views.leave_list, name="leave_list"),
-    path("leaves/new/", views.leave_request_create, name="leave_request_create"),
+    path("leaves/add/", views.leave_request_create, name="leave_request_create"),
     path("leaves/process/<int:pk>/<str:action>/", views.leave_process, name="leave_process"),
 
     # ==========================================================

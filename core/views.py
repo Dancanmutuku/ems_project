@@ -333,7 +333,7 @@ def reject_leave(request, pk):
     return redirect("hr_leave_list")
 @login_required
 def leave_request_create(request):
-    is_hr = request.user.groups.filter(name="HR").exists()
+    is_hr_user = request.user.groups.filter(name="HR").exists()
 
     if request.method == "POST":
         form = LeaveRequestForm(request.POST)
@@ -341,12 +341,12 @@ def leave_request_create(request):
         if form.is_valid():
             leave = form.save(commit=False)
 
-            if is_hr:
+            if is_hr_user:
                 # HR selects employee from dropdown
                 selected_employee = form.cleaned_data.get('employee')
                 if not selected_employee:
                     form.add_error('employee', 'Please select an employee.')
-                    return render(request, "core/leave_request_form.html", {"form": form, "is_hr": is_hr})
+                    return render(request, "core/leave_request_form.html", {"form": form, "is_hr": is_hr_user})
                 leave.employee = selected_employee
             else:
                 # Regular employee: assign themselves
@@ -356,15 +356,36 @@ def leave_request_create(request):
             leave.requested_at = timezone.now()
             leave.save()
 
-            return redirect('hr_leave_list')
+            # Notify HR/Admin
+            hr_users = User.objects.filter(groups__name="HR")
+            for hr in hr_users:
+                Notification.objects.create(
+                    user=hr,
+                    title="New Leave Request Submitted",
+                    message=f"{leave.employee.user.username} submitted a new leave request from {leave.start_date} to {leave.end_date}."
+                )
+
+            # Notify employee themselves
+            Notification.objects.create(
+                user=request.user,
+                title="Leave Request Submitted",
+                message=f"Your leave request from {leave.start_date} to {leave.end_date} has been submitted for approval."
+            )
+
+            # Redirect based on role
+            if is_hr_user:
+                return redirect('hr_leave_list')
+            else:
+                return redirect('employee_dashboard')
 
     else:
         form = LeaveRequestForm()
-        if not is_hr:
+        if not is_hr_user:
             # Hide employee dropdown for regular employees
             form.fields['employee'].widget = forms.HiddenInput()
 
-    return render(request, "core/leave_request_form.html", {"form": form, "is_hr": is_hr})
+    return render(request, "core/leave_request_form.html", {"form": form, "is_hr": is_hr_user})
+
 @login_required
 def leave_list(request):
     # Check if user is HR
