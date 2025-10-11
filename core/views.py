@@ -25,6 +25,9 @@ from .models import Employee, Attendance, LeaveRequest, Payroll, Notification, D
 from .forms import EmployeeForm, LeaveRequestForm, AttendanceForm, DepartmentForm, UserForm
 from .utils import calc_nssf, calc_sha, calc_paye
 from .forms import PayrollForm  # we’ll create this next
+from django.core.mail import send_mail
+from django.conf import settings
+
 
 def payroll_list(request):
     payrolls = Payroll.objects.all()  # <- fetch all payroll records
@@ -322,6 +325,34 @@ def approve_leave(request, pk):
     leave = get_object_or_404(LeaveRequest, pk=pk)
     leave.status = "A"
     leave.save()
+
+    # Get the employee's email from the user profile
+    recipient_email = leave.employee.user.email
+
+    if recipient_email:
+        try:
+            send_mail(
+                subject="Leave Request Approved ",
+                message=(
+                    f"Dear {leave.employee.user.get_full_name() or leave.employee.user.username},\n\n"
+                    f"Your leave request has been approved.\n\n"
+                    f"Details:\n"
+                    f"Leave Type: {leave.leave_type}\n"
+                    f"Start Date: {leave.start_date}\n"
+                    f"End Date: {leave.end_date}\n"
+                    f"Status: Approved \n\n"
+                    f"Best regards,\nHR Department"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[recipient_email],
+                fail_silently=False,
+            )
+            messages.success(request, f"Leave approved and email sent to {recipient_email}.")
+        except Exception as e:
+            messages.error(request, f"Leave approved, but email failed: {e}")
+    else:
+        messages.warning(request, "Leave approved, but employee has no email on their profile.")
+
     return redirect("hr_leave_list")
 
 @login_required
@@ -330,6 +361,33 @@ def reject_leave(request, pk):
     leave = get_object_or_404(LeaveRequest, pk=pk)
     leave.status = "R"
     leave.save()
+
+    recipient_email = leave.employee.user.email
+
+    if recipient_email:
+        try:
+            send_mail(
+                subject="Leave Request Rejected",
+                message=(
+                    f"Dear {leave.employee.user.get_full_name() or leave.employee.user.username},\n\n"
+                    f"Your leave request has been rejected.\n\n"
+                    f"Details:\n"
+                    f"Leave Type: {leave.leave_type}\n"
+                    f"Start Date: {leave.start_date}\n"
+                    f"End Date: {leave.end_date}\n"
+                    f"Status: Rejected\n\n"
+                    "Best regards,\nHR Department"
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[recipient_email],
+                fail_silently=False,
+            )
+            messages.success(request, f"Leave rejected and email sent to {recipient_email}.")
+        except Exception as e:
+            messages.error(request, f"Leave rejected, but email failed: {e}")
+    else:
+        messages.warning(request, "Leave rejected, but employee has no email on their profile.")
+
     return redirect("hr_leave_list")
 @login_required
 def leave_request_create(request):
@@ -403,42 +461,71 @@ def leave_list(request):
 
     return render(request, template, {"leaves": leaves, "is_hr_admin": is_hr_admin})
 
-
 @login_required
 @group_required("HR")
 def leave_process(request, pk, action):
     """
     HR can approve, reject, or set a leave back to pending.
-    Sends a notification to the employee.
+    Sends a notification to the employee and an email for approve/reject.
     """
     leave = get_object_or_404(LeaveRequest, pk=pk)
 
     if action == "approve":
         leave.status = "A"
-        messages.success(request, f"Leave for {leave.employee} approved.")
+        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} has been approved."
+        leave_badge = "Approved"
+        msg_level = messages.SUCCESS
     elif action == "reject":
         leave.status = "R"
-        messages.error(request, f"Leave for {leave.employee} rejected.")
+        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} has been rejected."
+        leave_badge = "Rejected"
+        msg_level = messages.ERROR
     elif action == "pending":
         leave.status = "P"
-        messages.info(request, f"Leave for {leave.employee} set back to pending.")
+        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} is pending."
+        leave_badge = "Pending"
+        msg_level = messages.INFO
     else:
         messages.warning(request, "Invalid action.")
         return redirect("leave_list")
 
+    # Update processing info
     leave.processed_by = request.user
     leave.processed_at = timezone.now()
     leave.save()
 
-    # Notify employee of status change
+    # Create system notification
     Notification.objects.create(
         user=leave.employee.user,
         title="Leave Request Update",
-        message=f"Your leave request from {leave.start_date} to {leave.end_date} "
-                f"was marked as {leave.get_status_display()}."
+        message=leave_message
     )
 
-    return redirect("leave_list")
+    if leave.status in ["A", "R"]:
+        recipient_email = leave.employee.user.email
+        if recipient_email:
+            try:
+                send_mail(
+                    subject=f"Leave Request {leave_badge}",
+                    message=f"Dear {leave.employee.user.get_full_name() or leave.employee.user.username},\n\n"
+                            f"{leave_message}\n\n"
+                            f"Leave Type: {leave.leave_type}\n"
+                            f"Start Date: {leave.start_date}\n"
+                            f"End Date: {leave.end_date}\n\n"
+                            f"Best regards,\nHR Department",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[recipient_email],
+                    fail_silently=False,
+                )
+                messages.add_message(request, msg_level, f"Leave {leave_badge.lower()} and email sent to {recipient_email}.")
+            except Exception as e:
+                messages.error(request, f"Leave {leave_badge.lower()}, but email failed: {e}")
+        else:
+            messages.warning(request, f"Leave {leave_badge.lower()}, but employee has no email on profile.")
+    else:
+        messages.info(request, leave_message)
+
+    return redirect("hr_leave_list")
 # ================================================================
 # Attendance
 # ================================================================
