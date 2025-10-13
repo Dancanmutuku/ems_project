@@ -117,13 +117,18 @@ def employee_login(request):
     if request.method == "POST":
         username = request.POST.get("username")
         password = request.POST.get("password")
+
         user = authenticate(request, username=username, password=password)
-        if user:
+        if user is not None:
             login(request, user)
-            Employee.objects.get_or_create(user=user)  # Ensure Employee profile exists
-            return redirect('hr_dashboard') if is_hr(user) else redirect('employee_dashboard')
-        messages.error(request, "Invalid username or password")
-    return render(request, 'registration/login.html')
+            if user.groups.filter(name='HR').exists():
+                return redirect('hr_dashboard')
+            else:
+                return redirect('employee_dashboard')
+        else:
+            messages.error(request, "Invalid username or password.")
+            return render(request, "employee/employee_login.html")
+    return render(request, "employee/employee_login.html")
 
 @login_required
 @require_POST
@@ -202,17 +207,22 @@ def hr_employee_list(request):
 @login_required
 @group_required('HR')
 def hr_employee_create(request):
-    """Create a new employee along with a linked Django user."""
-    employee_form = None
     if request.method == "POST":
         username = request.POST.get("username")
         email = request.POST.get("email")
         password = request.POST.get("password")
 
+        if not password:
+            messages.error(request, "Password is required.")
+            return redirect("hr_employee_create")
+
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
         else:
             user = User.objects.create_user(username=username, email=email, password=password)
+            user.is_active = True  
+            user.save()
+
             employee_form = EmployeeForm(request.POST, request.FILES)
             if employee_form.is_valid():
                 employee = employee_form.save(commit=False)
@@ -222,12 +232,10 @@ def hr_employee_create(request):
                 return redirect('hr_employee_list')
             else:
                 messages.error(request, "Please fix the errors below.")
-    if not employee_form:
+    else:
         employee_form = EmployeeForm()
 
-    return render(request, "hr/hr_employee_form.html", {
-        "employee_form": employee_form
-    })
+    return render(request, "hr/hr_employee_form.html", {"employee_form": employee_form})
 
 @login_required
 @group_required('HR')
