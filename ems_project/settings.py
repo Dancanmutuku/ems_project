@@ -21,7 +21,7 @@ SECRET_KEY = 'django-insecure-2so#4*@2ku1%17@4&*l=egflu^l1$mgme3exah@*o55v1c-h6e
 # SECURITY WARNING: don’t run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["'your-ec2-public-ip'"]
 
 # Application definition
 INSTALLED_APPS = [
