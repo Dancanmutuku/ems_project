@@ -5,7 +5,7 @@ django-widget-tweaks==1.5.0
 
 # PDF handling
 PyPDF2==3.0.1          # Prefer PyPDF2 over pypdf for modern usage
-reportlab==3.6.15      # Updated to latest compatible version
+reportlab==3.6.13      # Updated to latest compatible version
 xhtml2pdf==0.2.7       # Compatible with latest reportlab
 
 # Arabic / RTL support
