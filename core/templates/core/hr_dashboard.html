@@ -66,7 +66,7 @@
 
     <!-- Header -->
     <div class="dashboard-header mb-5 text-center text-md-start">
-        <h2 class="fw-bold mb-1">Welcome, {{ request.user.get_full_name|default:request.user.username }} 👋</h2>
+        <h2 class="fw-bold mb-1">Welcome, {{ request.user.get_full_name|default:request.user.username }}</h2>
         <p class="mb-0 text-light opacity-75">Here’s your HR overview — manage employees, leaves, and payroll efficiently.</p>
     </div>
 
@@ -186,7 +186,7 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% url 'payroll_detail' payroll.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                                <a href="{% url 'payroll_list' %}" class="btn btn-sm btn-outline-primary">View</a>
                             </td>
                         </tr>
                         {% endfor %}

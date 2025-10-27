@@ -179,6 +179,14 @@ def my_profile(request):
 # ================================================================
 # HR Dashboard
 # ================================================================
+from django.contrib.auth import logout
+from django.shortcuts import redirect
+
+def hr_logout(request):
+    """Logs out the HR and redirects to HR login page."""
+    logout(request)
+    return redirect('hr_login')  # Redirect using the hr_login URL name
+
 @login_required
 @group_required('HR')
 def hr_dashboard(request):
