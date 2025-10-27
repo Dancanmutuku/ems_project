@@ -735,6 +735,149 @@ def salary_report(request):
     """Full payroll list"""
     payrolls = Payroll.objects.select_related("employee__user").all()
     return render(request, "reports/salary_report.html", {"payrolls": payrolls})
+from django.shortcuts import render
+from django.db.models import Count, Avg, Q, F
+from django.utils import timezone
+from datetime import timedelta, date
+from core.models import Employee, Department, Attendance, Leave, Payroll, KPI
+import json
+
+def hr_insights(request):
+    """
+    HR Insights Dashboard View
+    Provides analytics for HR: workforce, attendance, compensation, and performance.
+    """
+
+    # -------------------------------
+    # 1. Basic Workforce Stats
+    # -------------------------------
+    employees_count = Employee.objects.count()
+    departments_count = Department.objects.count()
+    active_employees_count = Employee.objects.filter(is_active_employee=True).count()
+
+    # Gender distribution
+    gender_stats = (
+        Employee.objects.values('gender')
+        .annotate(count=Count('gender'))
+        .order_by('gender')
+    )
+    gender_labels = [item['gender'] or 'Unspecified' for item in gender_stats]
+    gender_data = [item['count'] for item in gender_stats]
+
+    # Department composition
+    dept_composition = (
+        Department.objects.annotate(count=Count('employee'))
+        .values('name', 'count')
+    )
+    dept_labels = [d['name'] for d in dept_composition]
+    dept_counts = [d['count'] for d in dept_composition]
+
+    # -------------------------------
+    # 2. Employee Growth & Turnover
+    # -------------------------------
+    last_6_months = [
+        (timezone.now() - timedelta(days=30 * i)).strftime("%b")
+        for i in reversed(range(6))
+    ]
+
+    new_hires = [
+        Employee.objects.filter(
+            hire_date__month=(timezone.now() - timedelta(days=30 * i)).month
+        ).count()
+        for i in reversed(range(6))
+    ]
+
+    # Example exit simulation (contract_end)
+    exits = [
+        Employee.objects.filter(
+            contract_end__month=(timezone.now() - timedelta(days=30 * i)).month
+        ).count()
+        for i in reversed(range(6))
+    ]
+
+    # -------------------------------
+    # 3. Attendance & Leave Analytics
+    # -------------------------------
+    total_attendance = Attendance.objects.count()
+    present_count = Attendance.objects.filter(status='Present').count()
+    avg_attendance = round((present_count / total_attendance * 100), 2) if total_attendance > 0 else 0
+
+    # Attendance trend (last 4 weeks)
+    attendance_labels = []
+    attendance_data = []
+    for i in range(4):
+        week_start = timezone.now().date() - timedelta(days=(i + 1) * 7)
+        week_end = week_start + timedelta(days=7)
+        total = Attendance.objects.filter(date__range=[week_start, week_end]).count()
+        present = Attendance.objects.filter(date__range=[week_start, week_end], status='Present').count()
+        rate = (present / total * 100) if total > 0 else 0
+        attendance_labels.append(f"Week {4 - i}")
+        attendance_data.append(round(rate, 2))
+    attendance_labels.reverse()
+    attendance_data.reverse()
+
+    # Attendance by department
+    dept_attendance_labels, dept_attendance_data = [], []
+    for dept in Department.objects.all():
+        total_dept_att = Attendance.objects.filter(employee__department=dept).count()
+        present_dept_att = Attendance.objects.filter(employee__department=dept, status='Present').count()
+        rate = (present_dept_att / total_dept_att * 100) if total_dept_att > 0 else 0
+        dept_attendance_labels.append(dept.name)
+        dept_attendance_data.append(round(rate, 2))
+
+    # Leave breakdown by type
+    leave_stats = Leave.objects.values('leave_type').annotate(count=Count('id'))
+    leave_labels = [l['leave_type'] for l in leave_stats]
+    leave_data = [l['count'] for l in leave_stats]
+
+    # -------------------------------
+    # 4. Performance & Compensation
+    # -------------------------------
+    avg_salary = round(Employee.objects.aggregate(Avg('salary'))['salary__avg'] or 0, 2)
+    salary_by_dept = (
+        Department.objects.annotate(avg_salary=Avg('employee__salary'))
+        .values('name', 'avg_salary')
+    )
+    salary_labels = [d['name'] for d in salary_by_dept]
+    salary_data = [float(d['avg_salary'] or 0) for d in salary_by_dept]
+
+    # Department performance (KPI average)
+    dept_performance = (
+        Department.objects.annotate(avg_score=Avg('employee__kpis__actual'))
+        .values('name', 'avg_score')
+    )
+    perf_labels = [d['name'] for d in dept_performance]
+    perf_data = [float(d['avg_score'] or 0) for d in dept_performance]
+
+    # -------------------------------
+    # 5. Prepare context for template
+    # -------------------------------
+    context = {
+        "employees_count": employees_count,
+        "departments_count": departments_count,
+        "active_employees_count": active_employees_count,
+        "avg_attendance": avg_attendance,
+        "gender_labels": json.dumps(gender_labels),
+        "gender_data": json.dumps(gender_data),
+        "dept_labels": json.dumps(dept_labels),
+        "dept_counts": json.dumps(dept_counts),
+        "growth_labels": json.dumps(last_6_months),
+        "hire_data": json.dumps(new_hires),
+        "exit_data": json.dumps(exits),
+        "attendance_labels": json.dumps(attendance_labels),
+        "attendance_data": json.dumps(attendance_data),
+        "dept_attendance_labels": json.dumps(dept_attendance_labels),
+        "dept_attendance_data": json.dumps(dept_attendance_data),
+        "leave_labels": json.dumps(leave_labels),
+        "leave_data": json.dumps(leave_data),
+        "salary_labels": json.dumps(salary_labels),
+        "salary_data": json.dumps(salary_data),
+        "perf_labels": json.dumps(perf_labels),
+        "perf_data": json.dumps(perf_data),
+        "avg_salary": avg_salary,
+    }
+
+    return render(request, "hr/insights.html", context)
 
 
 # ================================================================

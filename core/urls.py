@@ -19,6 +19,8 @@ urlpatterns = [
     path("", views.employee_dashboard, name="home"),
     path("dashboard/", views.employee_dashboard, name="employee_dashboard"),
     path("hr/dashboard/", views.hr_dashboard, name="hr_dashboard"),
+    path("hr/insights/", views.hr_insights, name="hr_insights"),
+
 
     # ==========================================================
     # Employee Profile
