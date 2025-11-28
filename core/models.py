@@ -3,7 +3,10 @@ from django.contrib.auth.models import User
 from django.core.validators import MinValueValidator
 from decimal import Decimal
 from .utils import calc_nssf, calc_sha, calc_paye
-
+from django.db import models
+from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
+from decimal import Decimal
 # --------------------------
 # HR Model
 # --------------------------
@@ -30,41 +33,59 @@ class Department(models.Model):
     def __str__(self):
         return self.name
 
-# --------------------------
-# Employee Model
-# --------------------------
+
+
+from django.db import models
+from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator
+from decimal import Decimal
+
 class Employee(models.Model):
+    GENDER_CHOICES = (
+        ("M", "Male"),
+        ("F", "Female"),
+    )
+
+    # Basic info
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employee_profile')
     employee_id = models.CharField(max_length=20, unique=True, blank=True, null=True)
     contact = models.CharField(max_length=20, blank=True)
     dob = models.DateField(null=True, blank=True)
     gender = models.CharField(max_length=1, choices=GENDER_CHOICES, blank=True)
     address = models.TextField(blank=True)
+
+    # Job info
     job_title = models.CharField(max_length=100, blank=True)
-    department = models.ForeignKey(Department, on_delete=models.SET_NULL, null=True, blank=True)
+    department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True)
+    hire_date = models.DateField(null=True, blank=True)
+    is_active_employee = models.BooleanField(default=True)
+
+    # Salary
     salary = models.DecimalField(
         max_digits=10, decimal_places=2, default=0, validators=[MinValueValidator(0)]
     )
-    hire_date = models.DateField(null=True, blank=True)
-    is_active_employee = models.BooleanField(default=True)
+
+    # Profile & emergency contact
     profile_picture = models.ImageField(upload_to="profiles/", blank=True, null=True)
     emergency_contact_name = models.CharField(max_length=100, blank=True, null=True)
     emergency_contact_phone = models.CharField(max_length=20, blank=True, null=True)
-    annual_leave_balance = models.IntegerField(default=20)
-    sick_leave_balance = models.IntegerField(default=10)
+
+    # Leave balances
+    annual_leave_balance = models.PositiveIntegerField(default=20)
+    sick_leave_balance = models.PositiveIntegerField(default=10)
+    
+
+    # Contract
     contract_start = models.DateField(null=True, blank=True)
     contract_end = models.DateField(null=True, blank=True)
 
     def __str__(self):
-        # Use full_name property to always display a name in admin or elsewhere
+        """Return employee full name or fallback to username."""
         return self.full_name
 
     @property
     def full_name(self):
-        """
-        Return the full name of the employee.
-        Falls back to username if first_name and last_name are empty.
-        """
+        """Return the full name of the employee; fallback to username if missing."""
         if self.user:
             return self.user.get_full_name() or self.user.username
         return "-"
@@ -72,22 +93,24 @@ class Employee(models.Model):
     def calculate_net_salary(self):
         """
         Calculate net salary after deductions.
-        Returns a dictionary with detailed breakdown.
+        Returns a dictionary with a detailed breakdown.
         """
         gross = self.salary
-        nssf = calc_nssf(gross)
-        sha = calc_sha(gross)
-        paye = calc_paye(gross)
-        other = Decimal('0.00')
+        nssf = calc_nssf(gross)  # Your NSSF calculation function
+        sha = calc_sha(gross)    # Your other deduction calculation
+        paye = calc_paye(gross)  # PAYE calculation
+        other = Decimal("0.00")  # Any other deductions
         net = gross - nssf - sha - paye - other
+
         return {
             "gross": gross,
             "nssf": nssf,
             "sha": sha,
             "paye": paye,
             "other": other,
-            "net": net
+            "net": net,
         }
+
 # --------------------------
 # Employee Document
 # --------------------------
@@ -113,13 +136,17 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.employee.user.username} - {self.date}"
-
-# --------------------------
-# Leave Requests
-# --------------------------
 class LeaveRequest(models.Model):
+    LEAVE_TYPE_CHOICES = [
+        ("Annual", "Annual Leave"),
+        ("Sick", "Sick Leave"),
+        ("Maternity", "Maternity Leave"),
+        ("Paternity", "Paternity Leave"),
+        # Add other leave types if needed
+    ]
+
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='leaves')
-    leave_type = models.CharField(max_length=50)
+    leave_type = models.CharField(max_length=50, choices=LEAVE_TYPE_CHOICES)
     start_date = models.DateField()
     end_date = models.DateField()
     reason = models.TextField(blank=True)
@@ -133,21 +160,6 @@ class LeaveRequest(models.Model):
 
     def __str__(self):
         return f"{self.employee} {self.leave_type} {self.start_date}→{self.end_date} [{self.status}]"
-
-class Leave(models.Model):
-    STATUS_CHOICES = [
-        ("P", "Pending"),
-        ("A", "Approved"),
-        ("R", "Rejected"),
-    ]
-
-    employee = models.ForeignKey(Employee, on_delete=models.CASCADE)
-    leave_type = models.CharField(max_length=50)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default="P")
-    applied_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)  # to track who applied
-    created_at = models.DateTimeField(auto_now_add=True)
 
 # --------------------------
 # Payroll

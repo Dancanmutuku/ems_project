@@ -21,7 +21,7 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.forms import modelform_factory
 
-from .models import Employee, Attendance, LeaveRequest, Payroll, Notification, Department
+from .models import LEAVE_STATUS, Employee, Attendance, LeaveRequest, Payroll, Notification, Department
 from .forms import EmployeeForm, LeaveRequestForm, AttendanceForm, DepartmentForm, UserForm
 from .utils import calc_nssf, calc_sha, calc_paye
 from .forms import PayrollForm  # we’ll create this next
@@ -220,9 +220,11 @@ def hr_employee_create(request):
         email = request.POST.get("email")
         password = request.POST.get("password")
 
+        employee_form = EmployeeForm(request.POST, request.FILES)  # Always define it
+
         if not password:
             messages.error(request, "Password is required.")
-            return redirect("hr_employee_create")
+            return render(request, "hr/hr_employee_form.html", {"employee_form": employee_form})
 
         if User.objects.filter(username=username).exists():
             messages.error(request, "Username already exists!")
@@ -231,7 +233,6 @@ def hr_employee_create(request):
             user.is_active = True  
             user.save()
 
-            employee_form = EmployeeForm(request.POST, request.FILES)
             if employee_form.is_valid():
                 employee = employee_form.save(commit=False)
                 employee.user = user
@@ -240,6 +241,7 @@ def hr_employee_create(request):
                 return redirect('hr_employee_list')
             else:
                 messages.error(request, "Please fix the errors below.")
+
     else:
         employee_form = EmployeeForm()
 
@@ -476,34 +478,84 @@ def leave_list(request):
         is_hr_admin = False
 
     return render(request, template, {"leaves": leaves, "is_hr_admin": is_hr_admin})
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import LeaveRequest, Notification
+
+from django.shortcuts import get_object_or_404, redirect
+from django.contrib import messages
+from django.utils import timezone
+from django.core.mail import send_mail
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from core.models import LeaveRequest, Notification
+from core.decorators import group_required
 
 @login_required
 @group_required("HR")
 def leave_process(request, pk, action):
     """
-    HR can approve, reject, or set a leave back to pending.
-    Sends a notification to the employee and an email for approve/reject.
+    HR can approve, reject, or keep a leave pending.
+    Deducts leave days from the correct balance if approved.
+    Sends notifications and emails to the employee.
     """
     leave = get_object_or_404(LeaveRequest, pk=pk)
+    employee = leave.employee
+    leave_days = leave.duration()  # <-- call the method to get number of days
+
+    # Determine which leave balance to use
+    leave_type_lower = leave.leave_type.lower()
+    if leave_type_lower == "annual":
+        balance_field = "annual_leave_balance"
+    elif leave_type_lower == "sick":
+        balance_field = "sick_leave_balance"
+    else:
+        messages.warning(request, f"Unknown leave type '{leave.leave_type}'. Cannot process leave.")
+        return redirect("hr_leave_list")
+
+    employee_balance = getattr(employee, balance_field, 0)
 
     if action == "approve":
-        leave.status = "A"
-        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} has been approved. Enjoy your leave."
-        leave_badge = "Approved"
-        msg_level = messages.SUCCESS
+        if employee_balance >= leave_days:
+            leave.status = "A"
+            leave_message = (
+                f"Your leave request from {leave.start_date} to {leave.end_date} has been approved. Enjoy your leave."
+            )
+            leave_badge = "Approved"
+            msg_level = messages.SUCCESS
+
+            # Deduct leave days
+            setattr(employee, balance_field, employee_balance - leave_days)
+            employee.save()
+        else:
+            messages.warning(
+                request,
+                f"Cannot approve leave: {employee.full_name} has only {employee_balance} "
+                f"days remaining for {leave.leave_type} leave, but requested {leave_days}."
+            )
+            return redirect("hr_leave_list")
+
     elif action == "reject":
         leave.status = "R"
-        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} has been rejected. Please reschedule."
+        leave_message = (
+            f"Your leave request from {leave.start_date} to {leave.end_date} has been rejected."
+        )
         leave_badge = "Rejected"
         msg_level = messages.ERROR
+
     elif action == "pending":
         leave.status = "P"
-        leave_message = f"Your leave request from {leave.start_date} to {leave.end_date} is pending."
+        leave_message = (
+            f"Your leave request from {leave.start_date} to {leave.end_date} is pending."
+        )
         leave_badge = "Pending"
         msg_level = messages.INFO
     else:
         messages.warning(request, "Invalid action.")
-        return redirect("leave_list")
+        return redirect("hr_leave_list")
 
     # Update processing info
     leave.processed_by = request.user
@@ -512,36 +564,45 @@ def leave_process(request, pk, action):
 
     # Create system notification
     Notification.objects.create(
-        user=leave.employee.user,
+        user=employee.user,
         title="Leave Request Update",
         message=leave_message
     )
 
+    # Send email if approved or rejected
     if leave.status in ["A", "R"]:
-        recipient_email = leave.employee.user.email
+        recipient_email = employee.user.email
         if recipient_email:
             try:
                 send_mail(
                     subject=f"Leave Request {leave_badge}",
-                    message=f"Dear {leave.employee.user.get_full_name() or leave.employee.user.username},\n\n"
-                            f"{leave_message}\n\n"
-                            f"Leave Type: {leave.leave_type}\n"
-                            f"Start Date: {leave.start_date}\n"
-                            f"End Date: {leave.end_date}\n\n"
-                            f"Best regards,\nHR Manager",
+                    message=(
+                        f"Dear {employee.full_name},\n\n"
+                        f"{leave_message}\n\n"
+                        f"Leave Type: {leave.leave_type}\n"
+                        f"Start Date: {leave.start_date}\n"
+                        f"End Date: {leave.end_date}\n\n"
+                        f"Best regards,\nHR Manager"
+                    ),
                     from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=[recipient_email],
                     fail_silently=False,
                 )
-                messages.add_message(request, msg_level, f"Leave {leave_badge.lower()} and email sent to {recipient_email}.")
+                messages.add_message(
+                    request, msg_level, f"Leave {leave_badge.lower()} and email sent to {recipient_email}."
+                )
             except Exception as e:
                 messages.error(request, f"Leave {leave_badge.lower()}, but email failed: {e}")
         else:
-            messages.warning(request, f"Leave {leave_badge.lower()}, but employee has no email on profile.")
+            messages.warning(
+                request, f"Leave {leave_badge.lower()}, but employee has no email on profile."
+            )
     else:
         messages.info(request, leave_message)
 
     return redirect("hr_leave_list")
+
+
 # ================================================================
 # Attendance
 # ================================================================
@@ -736,11 +797,11 @@ def salary_report(request):
     payrolls = Payroll.objects.select_related("employee__user").all()
     return render(request, "reports/salary_report.html", {"payrolls": payrolls})
 from django.shortcuts import render
-from django.db.models import Count, Avg, Q, F
 from django.utils import timezone
-from datetime import timedelta, date
-from core.models import Employee, Department, Attendance, Leave, Payroll, KPI
+from django.db.models import Count, Avg
+from datetime import timedelta
 import json
+from .models import Employee, Department, Attendance, LeaveRequest
 
 def hr_insights(request):
     """
@@ -787,7 +848,6 @@ def hr_insights(request):
         for i in reversed(range(6))
     ]
 
-    # Example exit simulation (contract_end)
     exits = [
         Employee.objects.filter(
             contract_end__month=(timezone.now() - timedelta(days=30 * i)).month
@@ -800,7 +860,7 @@ def hr_insights(request):
     # -------------------------------
     total_attendance = Attendance.objects.count()
     present_count = Attendance.objects.filter(status='Present').count()
-    avg_attendance = round((present_count / total_attendance * 100), 2) if total_attendance > 0 else 0
+    avg_attendance = round((present_count / total_attendance * 100), 2) if total_attendance else 0
 
     # Attendance trend (last 4 weeks)
     attendance_labels = []
@@ -817,7 +877,8 @@ def hr_insights(request):
     attendance_data.reverse()
 
     # Attendance by department
-    dept_attendance_labels, dept_attendance_data = [], []
+    dept_attendance_labels = []
+    dept_attendance_data = []
     for dept in Department.objects.all():
         total_dept_att = Attendance.objects.filter(employee__department=dept).count()
         present_dept_att = Attendance.objects.filter(employee__department=dept, status='Present').count()
@@ -826,7 +887,7 @@ def hr_insights(request):
         dept_attendance_data.append(round(rate, 2))
 
     # Leave breakdown by type
-    leave_stats = Leave.objects.values('leave_type').annotate(count=Count('id'))
+    leave_stats = LeaveRequest.objects.values('leave_type').annotate(count=Count('id'))
     leave_labels = [l['leave_type'] for l in leave_stats]
     leave_data = [l['count'] for l in leave_stats]
 
@@ -834,6 +895,7 @@ def hr_insights(request):
     # 4. Performance & Compensation
     # -------------------------------
     avg_salary = round(Employee.objects.aggregate(Avg('salary'))['salary__avg'] or 0, 2)
+
     salary_by_dept = (
         Department.objects.annotate(avg_salary=Avg('employee__salary'))
         .values('name', 'avg_salary')
@@ -841,7 +903,6 @@ def hr_insights(request):
     salary_labels = [d['name'] for d in salary_by_dept]
     salary_data = [float(d['avg_salary'] or 0) for d in salary_by_dept]
 
-    # Department performance (KPI average)
     dept_performance = (
         Department.objects.annotate(avg_score=Avg('employee__kpis__actual'))
         .values('name', 'avg_score')
@@ -878,7 +939,6 @@ def hr_insights(request):
     }
 
     return render(request, "hr/insights.html", context)
-
 
 # ================================================================
 # Export Views
