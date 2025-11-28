@@ -6,13 +6,11 @@
 {% block content %}
 <div class="container my-5">
 
-    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 class="fw-bold">HR Insights</h2>
         <a href="{% url 'hr_dashboard' %}" class="btn btn-outline-primary">← Back to Dashboard</a>
     </div>
 
-    <!-- Summary Cards -->
     <div class="row g-4 mb-5 text-center text-md-start">
         <div class="col-6 col-md-3">
             <div class="card bg-primary text-white shadow">
@@ -22,6 +20,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-6 col-md-3">
             <div class="card bg-success text-white shadow">
                 <div class="card-body">
@@ -30,6 +29,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-6 col-md-3">
             <div class="card bg-info text-white shadow">
                 <div class="card-body">
@@ -38,6 +38,7 @@
                 </div>
             </div>
         </div>
+
         <div class="col-6 col-md-3">
             <div class="card bg-warning text-white shadow">
                 <div class="card-body">
@@ -87,62 +88,49 @@
         </div>
     </div>
 
-    <!-- Top Departments Table -->
-    <div class="card shadow-sm">
-        <div class="card-header bg-secondary text-white">Top Performing Departments</div>
-        <div class="card-body p-0">
-            {% if top_departments %}
-                <table class="table table-striped mb-0">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Department</th>
-                            <th>Employee Count</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for dept in top_departments %}
-                        <tr>
-                            <td>{{ dept.name }}</td>
-                            <td>{{ dept.employee_count }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            {% else %}
-                <p class="text-center text-muted py-4 mb-0">No data available yet.</p>
-            {% endif %}
-        </div>
-    </div>
 </div>
 
-<!-- Chart.js -->
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    // Convert data safely from Django
+
     const growthLabels = JSON.parse('{{ growth_labels|safe|escapejs }}');
-    const growthData = JSON.parse('{{ growth_data|safe|escapejs }}');
+    const hireData = JSON.parse('{{ hire_data|safe|escapejs }}');
+    const exitData = JSON.parse('{{ exit_data|safe|escapejs }}');
+
     const attendanceLabels = JSON.parse('{{ attendance_labels|safe|escapejs }}');
     const attendanceData = JSON.parse('{{ attendance_data|safe|escapejs }}');
+
     const genderLabels = JSON.parse('{{ gender_labels|safe|escapejs }}');
     const genderData = JSON.parse('{{ gender_data|safe|escapejs }}');
-    const deptLabels = JSON.parse('{{ dept_labels|safe|escapejs }}');
-    const deptAttendance = JSON.parse('{{ dept_attendance|safe|escapejs }}');
 
-    // Employee Growth
+    const deptLabels = JSON.parse('{{ dept_attendance_labels|safe|escapejs }}');
+    const deptAttendance = JSON.parse('{{ dept_attendance_data|safe|escapejs }}');
+
+    // Employee Growth Chart
     new Chart(document.getElementById('employeeGrowthChart'), {
         type: 'line',
         data: {
             labels: growthLabels,
-            datasets: [{
-                label: 'Employee Count',
-                data: growthData,
-                borderColor: '#007bff',
-                fill: false,
-                tension: 0.3
-            }]
-        },
-        options: { responsive: true }
+            datasets: [
+                {
+                    label: 'New Hires',
+                    data: hireData,
+                    borderColor: '#007bff',
+                    fill: false,
+                    tension: 0.3
+                },
+                {
+                    label: 'Exits',
+                    data: exitData,
+                    borderColor: '#dc3545',
+                    fill: false,
+                    tension: 0.3
+                }
+            ]
+        }
     });
 
     // Attendance Trend
@@ -155,8 +143,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 data: attendanceData,
                 backgroundColor: '#28a745'
             }]
-        },
-        options: { responsive: true }
+        }
     });
 
     // Gender Distribution
@@ -169,8 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 data: genderData,
                 backgroundColor: ['#007bff', '#e83e8c', '#6c757d']
             }]
-        },
-        options: { responsive: true }
+        }
     });
 
     // Attendance by Department
@@ -183,9 +169,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 data: deptAttendance,
                 backgroundColor: '#ffc107'
             }]
-        },
-        options: { responsive: true }
+        }
     });
+
 });
 </script>
+
 {% endblock %}
