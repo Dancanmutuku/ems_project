@@ -1,6 +1,6 @@
-# serve.py
-from waitress import serve
-from ems_project.wsgi import application  # Make sure 'ems_project' matches the folder containing wsgi.py
+import os
+from django.core.wsgi import get_wsgi_application
 
-if __name__ == '__main__':
-    serve(application, host='127.0.0.1', port=8000)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "ems_project.settings")
+
+app = get_wsgi_application()
