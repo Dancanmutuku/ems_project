@@ -32,7 +32,7 @@ pypdf==6.0.0
 python-bidi==0.4.2
 python-dateutil==2.9.0.post0
 PyYAML==6.0.2
-reportlab==3.6.13
+reportlab==4.2.5
 requests==2.32.5
 six==1.17.0
 sqlparse==0.5.3
@@ -48,4 +48,4 @@ wcwidth==0.2.14
 webencodings==0.5.1
 whitenoise==6.11.0
 wrapt==1.17.3
-xhtml2pdf==0.2.7
+xhtml2pdf==0.2.16
