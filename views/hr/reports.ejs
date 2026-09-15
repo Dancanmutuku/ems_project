@@ -1,0 +1,237 @@
+<%- include('../partials/header', { title: 'HR Reports & Analytics' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="page-title mb-1">HR Reports & Exports</h2>
+    <p class="page-subtitle mb-0">Consolidated reports across workforce, payroll, attendance, and leave management</p>
+  </div>
+</div>
+
+<!-- Summary Metric Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small fw-semibold text-uppercase tracking-wider">Total Staff</div>
+      <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= employees.length %></div>
+      <div class="mt-2 pt-2 border-top small text-muted">All registered personnel</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small fw-semibold text-uppercase tracking-wider">Pending Leaves</div>
+      <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= pendingLeavesCount %></div>
+      <div class="mt-2 pt-2 border-top small text-muted">Applications in queue</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small fw-semibold text-uppercase tracking-wider">Monthly Payroll</div>
+      <div class="fs-4 fw-bold mt-1" style="color: var(--text-main);">KSh <%= Number(monthlyPayrollTotal).toLocaleString() %></div>
+      <div class="mt-2 pt-2 border-top small text-muted">Disbursement sum</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small fw-semibold text-uppercase tracking-wider">Active Contracts</div>
+      <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= activeContractsCount %></div>
+      <div class="mt-2 pt-2 border-top small text-muted">Valid active agreements</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tab Navigation -->
+<div class="card overflow-hidden">
+  <div class="card-header border-bottom p-0" style="background-color: var(--bg-subtle);">
+    <ul class="nav nav-tabs card-header-tabs m-0 px-3 pt-2" id="reportTabs" role="tablist">
+      <li class="nav-item">
+        <button class="nav-link active fw-semibold" id="tab-emp" data-bs-toggle="tab" data-bs-target="#content-emp" type="button">
+          Employees
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" id="tab-pay" data-bs-toggle="tab" data-bs-target="#content-pay" type="button">
+          Payroll Records
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" id="tab-att" data-bs-toggle="tab" data-bs-target="#content-att" type="button">
+          Attendance
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link fw-semibold" id="tab-leave" data-bs-toggle="tab" data-bs-target="#content-leave" type="button">
+          Leave History
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="card-body p-4">
+    <div class="tab-content" id="reportTabsContent">
+
+      <!-- Employees Tab -->
+      <div class="tab-pane fade show active" id="content-emp" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0" style="color: var(--text-main);">Employee Roster</h6>
+          <a href="/hr/reports/employees/export" class="btn btn-outline-secondary btn-sm">
+            Export CSV
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Department</th>
+                <th>Job Title</th>
+                <th>Salary</th>
+                <th>Hire Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% employees.forEach(function(e) { %>
+                <tr>
+                  <td class="small text-muted"><%= e.employeeId %></td>
+                  <td class="fw-semibold" style="color: var(--text-main);"><%= e.fullName %></td>
+                  <td><span class="badge-soft-secondary"><%= e.departmentName %></span></td>
+                  <td style="color: var(--text-main);"><%= e.jobTitle %></td>
+                  <td style="color: var(--text-main);">KSh <%= Number(e.salary).toLocaleString() %></td>
+                  <td class="small text-muted"><%= e.hireDate %></td>
+                  <td><span class="<%= e.isActiveEmployee ? 'badge-soft-success' : 'badge-soft-secondary' %>"><%= e.isActiveEmployee ? 'Active' : 'Inactive' %></span></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Payroll Tab -->
+      <div class="tab-pane fade" id="content-pay" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0" style="color: var(--text-main);">Payroll Disbursement Summary</h6>
+          <a href="/hr/reports/payroll/export" class="btn btn-outline-secondary btn-sm">
+            Export CSV
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Period</th>
+                <th>Basic</th>
+                <th>Gross</th>
+                <th>NSSF</th>
+                <th>SHA</th>
+                <th>PAYE</th>
+                <th>Net Pay</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% payrolls.forEach(function(p) { %>
+                <tr>
+                  <td class="fw-semibold" style="color: var(--text-main);"><%= p.employeeName %></td>
+                  <td class="small text-muted"><%= p.periodStart %> to <%= p.periodEnd %></td>
+                  <td>KSh <%= Number(p.basicSalary).toLocaleString() %></td>
+                  <td class="fw-semibold">KSh <%= Number(p.grossSalary).toLocaleString() %></td>
+                  <td class="small text-muted"><%= Number(p.nssf).toFixed(2) %></td>
+                  <td class="small text-muted"><%= Number(p.sha).toFixed(2) %></td>
+                  <td class="small text-muted"><%= Number(p.paye).toFixed(2) %></td>
+                  <td class="fw-bold" style="color: var(--text-main);">KSh <%= Number(p.netPay).toLocaleString() %></td>
+                  <td><span class="<%= p.status === 'Paid' ? 'badge-soft-success' : 'badge-soft-warning' %>"><%= p.status %></span></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Attendance Tab -->
+      <div class="tab-pane fade" id="content-att" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0" style="color: var(--text-main);">Monthly Attendance Log</h6>
+          <a href="/hr/reports/attendance/export" class="btn btn-outline-secondary btn-sm">
+            Export CSV
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Employee</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% attendances.forEach(function(a) { %>
+                <tr>
+                  <td class="fw-medium" style="color: var(--text-main);"><%= a.date %></td>
+                  <td class="fw-semibold" style="color: var(--text-main);"><%= a.employeeName %></td>
+                  <td class="small text-muted"><%= a.checkIn || '—' %></td>
+                  <td class="small text-muted"><%= a.checkOut || '—' %></td>
+                  <td>
+                    <span class="<%= a.status === 'Present' ? 'badge-soft-success' : (a.status === 'Absent' ? 'badge-soft-danger' : 'badge-soft-warning') %>">
+                      <%= a.status %>
+                    </span>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Leave Tab -->
+      <div class="tab-pane fade" id="content-leave" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6 class="fw-bold mb-0" style="color: var(--text-main);">Leave Applications Record</h6>
+          <a href="/hr/reports/leave/export" class="btn btn-outline-secondary btn-sm">
+            Export CSV
+          </a>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Type</th>
+                <th>Dates</th>
+                <th>Days</th>
+                <th>Reason</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% leaves.forEach(function(l) { %>
+                <tr>
+                  <td class="fw-semibold" style="color: var(--text-main);"><%= l.employeeName %></td>
+                  <td><span class="badge-soft-secondary"><%= l.leaveType %></span></td>
+                  <td class="small text-muted"><%= l.startDate %> &rarr; <%= l.endDate %></td>
+                  <td><strong><%= l.days %></strong></td>
+                  <td class="small text-muted"><%= l.reason %></td>
+                  <td>
+                    <span class="<%= l.status === 'A' ? 'badge-soft-success' : (l.status === 'P' ? 'badge-soft-warning' : 'badge-soft-danger') %>">
+                      <%= l.status === 'A' ? 'Approved' : (l.status === 'P' ? 'Pending' : 'Rejected') %>
+                    </span>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

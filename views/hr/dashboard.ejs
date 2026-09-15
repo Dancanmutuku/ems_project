@@ -1,0 +1,179 @@
+<%- include('../partials/header', { title: 'HR Dashboard' }) %>
+
+<div class="mb-4">
+  <!-- Clean Header Banner -->
+  <div class="card p-4 mb-4">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+      <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <h2 class="page-title mb-0">HR Management Overview</h2>
+          <span class="badge-soft-primary">Live Records</span>
+        </div>
+        <p class="page-subtitle mb-0">Welcome back, <strong><%= currentUser.fullName %></strong>. Monitor workforce metrics, approve leave requests, and process statutory payroll.</p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="/hr/employees/add" class="btn btn-outline-secondary">
+          Add Employee
+        </a>
+        <a href="/hr/payrolls/add" class="btn btn-primary">
+          Process Payroll
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Metric Cards (Clean, minimalist typography without decorative icon boxes) -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="card p-3">
+        <div class="text-muted small fw-semibold text-uppercase tracking-wider">Total Staff</div>
+        <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= employeesCount %></div>
+        <div class="mt-2 pt-2 border-top small text-muted">Active workforce members</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3">
+        <div class="text-muted small fw-semibold text-uppercase tracking-wider">Departments</div>
+        <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= departmentsCount %></div>
+        <div class="mt-2 pt-2 border-top small text-muted">Organizational units</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3">
+        <div class="text-muted small fw-semibold text-uppercase tracking-wider">Pending Leaves</div>
+        <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= pendingLeaves.length %></div>
+        <div class="mt-2 pt-2 border-top small text-muted">Awaiting HR approval</div>
+      </div>
+    </div>
+
+    <div class="col-6 col-md-3">
+      <div class="card p-3">
+        <div class="text-muted small fw-semibold text-uppercase tracking-wider">Recent Payrolls</div>
+        <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= recentPayrolls.length %></div>
+        <div class="mt-2 pt-2 border-top small text-muted">Latest processed batches</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Navigation Pills -->
+  <div class="mb-4 d-flex flex-wrap gap-2">
+    <a href="/hr/employees" class="btn btn-outline-secondary btn-sm">Staff Directory</a>
+    <a href="/hr/departments" class="btn btn-outline-secondary btn-sm">Departments</a>
+    <a href="/hr/leaves" class="btn btn-outline-secondary btn-sm">Leave Queue</a>
+    <a href="/hr/payrolls" class="btn btn-outline-secondary btn-sm">Payroll Records</a>
+    <a href="/hr/reports" class="btn btn-outline-secondary btn-sm">Export Reports</a>
+    <a href="/hr/insights" class="btn btn-outline-secondary btn-sm">Analytics</a>
+  </div>
+
+  <!-- Pending Leaves Section -->
+  <div class="card mb-4 overflow-hidden">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Pending Leave Applications</h6>
+        <% if (pendingLeaves.length > 0) { %>
+          <span class="badge-soft-warning"><%= pendingLeaves.length %> action required</span>
+        <% } %>
+      </div>
+      <a href="/hr/leaves" class="btn btn-outline-secondary btn-sm">View All</a>
+    </div>
+    <div class="card-body p-0">
+      <% if (pendingLeaves.length > 0) { %>
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Leave Type</th>
+                <th>Dates</th>
+                <th>Reason</th>
+                <th class="text-center" style="width: 170px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% pendingLeaves.forEach(function(leave) { %>
+                <tr>
+                  <td class="fw-semibold" style="color: var(--text-main);"><%= leave.employeeName %></td>
+                  <td><span class="badge-soft-secondary"><%= leave.leaveType %></span></td>
+                  <td class="small text-muted"><%= leave.startDate %> &rarr; <%= leave.endDate %></td>
+                  <td class="small text-muted"><%= leave.reason || '—' %></td>
+                  <td class="text-center">
+                    <form action="/leaves/process/<%= leave.id %>/approve" method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-sm btn-primary py-1 px-2 me-1" title="Approve Leave">Approve</button>
+                    </form>
+                    <form action="/leaves/process/<%= leave.id %>/reject" method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Reject Leave">Reject</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } else { %>
+        <div class="text-center py-5 text-muted">
+          <p class="mb-0 fw-medium" style="color: var(--text-main);">All leave requests have been reviewed</p>
+          <small class="text-muted">No pending employee requests in the queue.</small>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Recent Payrolls Section -->
+  <div class="card overflow-hidden">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Recent Payroll Records</h6>
+      <a href="/hr/payrolls" class="btn btn-outline-secondary btn-sm">View All</a>
+    </div>
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead>
+            <tr>
+              <th>Employee</th>
+              <th>Period</th>
+              <th>Basic Salary</th>
+              <th>Gross Salary</th>
+              <th>Deductions</th>
+              <th>Net Pay</th>
+              <th>Status</th>
+              <th class="text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% recentPayrolls.forEach(function(p) { %>
+              <tr>
+                <td class="fw-semibold" style="color: var(--text-main);"><%= p.employeeName %></td>
+                <td class="small text-muted"><%= p.periodStart %> to <%= p.periodEnd %></td>
+                <td>KSh <%= Number(p.basicSalary).toLocaleString() %></td>
+                <td class="fw-semibold">KSh <%= Number(p.grossSalary).toLocaleString() %></td>
+                <td class="small text-muted">
+                  NSSF: <%= p.nssf %> | SHA: <%= p.sha %> | PAYE: <%= p.paye %>
+                </td>
+                <td class="fw-bold" style="color: var(--text-main);">KSh <%= Number(p.netPay).toLocaleString() %></td>
+                <td>
+                  <span class="<%= p.status === 'Paid' ? 'badge-soft-success' : 'badge-soft-warning' %>">
+                    <%= p.status %>
+                  </span>
+                </td>
+                <td class="text-center">
+                  <% if (p.status !== 'Paid') { %>
+                    <form action="/payroll/mark-paid/<%= p.id %>" method="POST" class="d-inline">
+                      <button type="submit" class="btn btn-sm btn-outline-primary py-1 px-2">Mark Paid</button>
+                    </form>
+                  <% } else { %>
+                    <span class="text-muted small">Settled</span>
+                  <% } %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<%- include('../partials/footer') %>

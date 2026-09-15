@@ -1,0 +1,96 @@
+<%- include('../partials/header', { title: 'Attendance Log' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="page-title mb-1">Attendance Log</h2>
+    <p class="page-subtitle mb-0">Record your daily work hours and check attendance history</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Mark Attendance Card -->
+  <div class="col-12 col-lg-4">
+    <div class="card">
+      <div class="card-header">
+        <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Log Attendance</h6>
+      </div>
+      <div class="card-body p-4">
+        <form method="POST" action="/attendance/mark">
+          <div class="mb-3">
+            <label class="form-label">Date *</label>
+            <input type="date" name="date" class="form-control" value="<%= todayDate %>" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Check-in Time</label>
+            <input type="time" name="checkIn" class="form-control" value="08:30">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Check-out Time</label>
+            <input type="time" name="checkOut" class="form-control" value="17:00">
+          </div>
+          <div class="mb-4">
+            <label class="form-label">Status *</label>
+            <select name="status" class="form-select" required>
+              <option value="Present" selected>Present</option>
+              <option value="Absent">Absent</option>
+              <option value="Leave">Leave</option>
+            </select>
+          </div>
+          <button type="submit" class="btn btn-primary w-100 py-2">
+            Submit Attendance
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Attendance History Table -->
+  <div class="col-12 col-lg-8">
+    <div class="card overflow-hidden">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Attendance History</h6>
+          <span class="badge-soft-secondary"><%= attendances.length %> records</span>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Check In</th>
+                <th>Check Out</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if (attendances.length > 0) { %>
+                <% attendances.forEach(function(a) { %>
+                  <tr>
+                    <td class="fw-semibold" style="color: var(--text-main);"><%= a.date %></td>
+                    <td class="text-muted"><%= a.checkIn || '—' %></td>
+                    <td class="text-muted"><%= a.checkOut || '—' %></td>
+                    <td>
+                      <span class="<%= a.status === 'Present' ? 'badge-soft-success' : (a.status === 'Absent' ? 'badge-soft-danger' : 'badge-soft-warning') %>">
+                        <%= a.status %>
+                      </span>
+                    </td>
+                  </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="4" class="text-center py-5 text-muted">
+                    No attendance records logged yet.
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

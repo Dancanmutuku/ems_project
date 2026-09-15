@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= typeof title !== 'undefined' ? title : 'Employee Management System' %> - Techpak Technologies</title>
+
+  <!-- Prevent theme flicker on load -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('ems_theme');
+      const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme ? savedTheme : (prefersDark ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-bs-theme', theme);
+    })();
+  </script>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    :root, [data-bs-theme="light"] {
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --bg-page: #f8fafc;
+      --bg-surface: rgba(255, 255, 255, 0.92);
+      --bg-subtle: #f1f5f9;
+      --border-color: #e2e8f0;
+      --border-light: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      --primary-soft: #eff6ff;
+      --nav-bg: rgba(255, 255, 255, 0.88);
+      --table-header-bg: rgba(248, 250, 252, 0.92);
+      --table-header-text: #475569;
+      --table-hover-bg: rgba(241, 245, 249, 0.6);
+      --table-text: #334155;
+      --card-header-bg: rgba(255, 255, 255, 0.95);
+      --footer-bg: rgba(255, 255, 255, 0.9);
+      --input-bg: rgba(255, 255, 255, 0.95);
+      --input-border: #cbd5e1;
+      --input-text: #0f172a;
+      --org-img-opacity: 0.38;
+      --org-tint-bg: rgba(248, 250, 252, 0.74);
+      --theme-segment-bg: #e2e8f0;
+      --theme-segment-active-bg: #ffffff;
+      --theme-segment-active-text: #0f172a;
+    }
+
+    [data-bs-theme="dark"] {
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --bg-page: #0b0f19;
+      --bg-surface: rgba(17, 24, 39, 0.90);
+      --bg-subtle: #162032;
+      --border-color: #1f2937;
+      --border-light: #1f2937;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary-color: #3b82f6;
+      --primary-hover: #60a5fa;
+      --primary-soft: rgba(59, 130, 246, 0.15);
+      --nav-bg: rgba(17, 24, 39, 0.88);
+      --table-header-bg: rgba(22, 32, 50, 0.92);
+      --table-header-text: #94a3b8;
+      --table-hover-bg: rgba(22, 32, 50, 0.6);
+      --table-text: #e2e8f0;
+      --card-header-bg: rgba(17, 24, 39, 0.95);
+      --footer-bg: rgba(17, 24, 39, 0.9);
+      --input-bg: rgba(17, 24, 39, 0.95);
+      --input-border: #374151;
+      --input-text: #f8fafc;
+      --org-img-opacity: 0.28;
+      --org-tint-bg: rgba(11, 15, 25, 0.82);
+      --theme-segment-bg: #1f2937;
+      --theme-segment-active-bg: #374151;
+      --theme-segment-active-text: #f9fafb;
+    }
+
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-family: var(--font-sans);
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      padding-top: 72px;
+      -webkit-font-smoothing: antialiased;
+      transition: background-color 0.2s ease, color 0.2s ease;
+      position: relative;
+    }
+
+    /* Blurred Organization Background */
+    .org-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .org-backdrop-img {
+      position: absolute;
+      top: -24px;
+      left: -24px;
+      right: -24px;
+      bottom: -24px;
+      background-image: url('/assets/images/org_background_1789466318908.jpg');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      filter: blur(22px);
+      transform: scale(1.08);
+      opacity: var(--org-img-opacity);
+      transition: opacity 0.3s ease;
+    }
+
+    .org-backdrop-tint {
+      position: absolute;
+      inset: 0;
+      background-color: var(--org-tint-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background-color 0.3s ease;
+    }
+
+    main {
+      flex: 1;
+    }
+
+    /* Navbar */
+    .navbar {
+      background-color: var(--nav-bg) !important;
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+      padding-top: 0.75rem;
+      padding-bottom: 0.75rem;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .navbar-brand {
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--text-main) !important;
+    }
+
+    .nav-link {
+      font-weight: 500;
+      font-size: 0.885rem;
+      color: var(--text-muted) !important;
+      padding: 0.45rem 0.75rem !important;
+      border-radius: 6px;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .nav-link:hover {
+      color: var(--text-main) !important;
+      background-color: var(--bg-subtle);
+    }
+
+    .nav-link.active {
+      color: var(--primary-color) !important;
+      background-color: var(--primary-soft);
+      font-weight: 600;
+    }
+
+    /* Role Badges */
+    .role-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 0.25rem 0.65rem;
+      border-radius: 6px;
+    }
+
+    .role-badge-hr {
+      background-color: rgba(37, 99, 235, 0.12);
+      color: var(--primary-color);
+      border: 1px solid rgba(37, 99, 235, 0.25);
+    }
+
+    .role-badge-emp {
+      background-color: rgba(5, 150, 105, 0.12);
+      color: #10b981;
+      border: 1px solid rgba(5, 150, 105, 0.25);
+    }
+
+    /* Cards */
+    .card {
+      background-color: var(--bg-surface) !important;
+      border: 1px solid var(--border-color) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .card-header {
+      background-color: var(--card-header-bg) !important;
+      border-bottom: 1px solid var(--border-color) !important;
+      padding: 1rem 1.25rem;
+    }
+
+    /* Tables */
+    .table {
+      margin-bottom: 0;
+      color: var(--table-text);
+    }
+
+    .table thead th {
+      background-color: var(--table-header-bg) !important;
+      color: var(--table-header-text) !important;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--border-color) !important;
+      border-top: none !important;
+      padding: 0.75rem 1rem;
+      white-space: nowrap;
+    }
+
+    .table tbody td {
+      padding: 0.85rem 1rem;
+      color: var(--table-text);
+      border-bottom: 1px solid var(--border-light);
+      font-size: 0.875rem;
+      background-color: transparent !important;
+    }
+
+    .table tbody tr:hover td {
+      background-color: var(--table-hover-bg) !important;
+    }
+
+    .table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* Buttons */
+    .btn {
+      font-weight: 500;
+      font-size: 0.875rem;
+      border-radius: 8px;
+      padding: 0.45rem 0.95rem;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .btn-primary {
+      background-color: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #ffffff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-hover);
+      border-color: var(--primary-hover);
+      color: #ffffff;
+    }
+
+    .btn-outline-primary {
+      color: var(--primary-color);
+      border-color: var(--border-color);
+      background-color: transparent;
+    }
+
+    .btn-outline-primary:hover {
+      background-color: var(--primary-soft);
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    .btn-outline-secondary {
+      color: var(--text-muted);
+      border-color: var(--border-color);
+      background-color: transparent;
+    }
+
+    .btn-outline-secondary:hover {
+      background-color: var(--bg-subtle);
+      color: var(--text-main);
+      border-color: var(--text-muted);
+    }
+
+    /* Soft Badges */
+    .badge-soft-primary {
+      background-color: var(--primary-soft);
+      color: var(--primary-color);
+      border: 1px solid rgba(37, 99, 235, 0.25);
+      font-weight: 600;
+      font-size: 0.75rem;
+      padding: 0.35em 0.65em;
+      border-radius: 6px;
+    }
+
+    .badge-soft-success {
+      background-color: rgba(16, 185, 129, 0.12);
+      color: #059669;
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      font-weight: 600;
+      font-size: 0.75rem;
+      padding: 0.35em 0.65em;
+      border-radius: 6px;
+    }
+
+    [data-bs-theme="dark"] .badge-soft-success {
+      color: #34d399;
+    }
+
+    .badge-soft-warning {
+      background-color: rgba(245, 158, 11, 0.12);
+      color: #d97706;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      font-weight: 600;
+      font-size: 0.75rem;
+      padding: 0.35em 0.65em;
+      border-radius: 6px;
+    }
+
+    [data-bs-theme="dark"] .badge-soft-warning {
+      color: #fbbf24;
+    }
+
+    .badge-soft-danger {
+      background-color: rgba(239, 68, 68, 0.12);
+      color: #dc2626;
+      border: 1px solid rgba(239, 68, 68, 0.25);
+      font-weight: 600;
+      font-size: 0.75rem;
+      padding: 0.35em 0.65em;
+      border-radius: 6px;
+    }
+
+    [data-bs-theme="dark"] .badge-soft-danger {
+      color: #f87171;
+    }
+
+    .badge-soft-secondary {
+      background-color: var(--bg-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+      font-weight: 600;
+      font-size: 0.75rem;
+      padding: 0.35em 0.65em;
+      border-radius: 6px;
+    }
+
+    /* Form Controls */
+    .form-control, .form-select {
+      border-radius: 8px;
+      border-color: var(--input-border);
+      background-color: var(--input-bg);
+      color: var(--input-text);
+      font-size: 0.9rem;
+      padding: 0.55rem 0.85rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--primary-color);
+      background-color: var(--input-bg);
+      color: var(--input-text);
+      box-shadow: 0 0 0 3px var(--primary-soft);
+    }
+
+    .form-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-bottom: 0.4rem;
+    }
+
+    /* Page headers */
+    .page-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--text-main);
+      letter-spacing: -0.02em;
+    }
+
+    .page-subtitle {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+    }
+
+    /* Dropdown Menus */
+    .dropdown-menu {
+      background-color: var(--bg-surface);
+      border-color: var(--border-color);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .dropdown-item {
+      color: var(--text-main);
+      font-size: 0.875rem;
+    }
+
+    .dropdown-item:hover {
+      background-color: var(--bg-subtle);
+      color: var(--text-main);
+    }
+
+    /* Theme Mode Switcher */
+    .theme-mode-switch {
+      display: inline-flex;
+      align-items: center;
+      background-color: var(--theme-segment-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 9999px;
+      padding: 3px;
+      gap: 2px;
+      user-select: none;
+    }
+
+    .theme-mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      line-height: 1.2;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      white-space: nowrap;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .theme-mode-btn:hover {
+      color: var(--text-main);
+    }
+
+    [data-bs-theme="light"] #themeBtnLight {
+      background-color: var(--theme-segment-active-bg);
+      color: var(--theme-segment-active-text);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    [data-bs-theme="dark"] #themeBtnDark {
+      background-color: var(--theme-segment-active-bg);
+      color: var(--theme-segment-active-text);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+
+    /* Nav tabs */
+    .nav-tabs {
+      border-bottom-color: var(--border-color);
+    }
+    .nav-tabs .nav-link {
+      color: var(--text-muted) !important;
+      border: 1px solid transparent;
+    }
+    .nav-tabs .nav-link.active {
+      color: var(--primary-color) !important;
+      background-color: var(--bg-surface);
+      border-color: var(--border-color) var(--border-color) transparent;
+      font-weight: 600;
+    }
+  </style>
+  <%- typeof extraCss !== 'undefined' ? extraCss : '' %>
+</head>
+<body>
+
+<!-- Blurred Organization Background Layer -->
+<div class="org-backdrop" aria-hidden="true">
+  <div class="org-backdrop-img"></div>
+  <div class="org-backdrop-tint"></div>
+</div>
+
+<nav class="navbar navbar-expand-lg fixed-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="<%= currentUser && currentUser.role === 'HR' ? '/hr/dashboard' : (currentUser ? '/dashboard' : '/login') %>">
+      <span>Techpak EMS</span>
+    </a>
+
+    <div class="d-flex align-items-center gap-2 order-lg-3">
+      <!-- Dark and Light Mode Switch Button -->
+      <div class="theme-mode-switch" role="group" aria-label="Theme mode switcher">
+        <button type="button" class="theme-mode-btn" id="themeBtnLight" onclick="setAppTheme('light')" title="Switch to Light Mode">
+          Light
+        </button>
+        <button type="button" class="theme-mode-btn" id="themeBtnDark" onclick="setAppTheme('dark')" title="Switch to Dark Mode">
+          Dark
+        </button>
+      </div>
+
+      <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#emsNavbar">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+
+    <div class="collapse navbar-collapse order-lg-2" id="emsNavbar">
+      <% if (currentUser && currentUser.role === 'HR') { %>
+        <!-- HR Navigation Links (Clean text without redundant icons) -->
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath === '/hr/dashboard' ? 'active' : '' %>" href="/hr/dashboard">
+              Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath.startsWith('/hr/employees') ? 'active' : '' %>" href="/hr/employees">
+              Employees
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath.startsWith('/hr/departments') ? 'active' : '' %>" href="/hr/departments">
+              Departments
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath.startsWith('/hr/payrolls') ? 'active' : '' %>" href="/hr/payrolls">
+              Payrolls
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath.startsWith('/hr/leaves') ? 'active' : '' %>" href="/hr/leaves">
+              Leaves
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath.startsWith('/hr/reports') ? 'active' : '' %>" href="/hr/reports">
+              Reports
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath === '/hr/insights' ? 'active' : '' %>" href="/hr/insights">
+              Insights
+            </a>
+          </li>
+          <li class="nav-item ms-lg-2 dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+              <span class="role-badge role-badge-hr">HR ADMIN</span>
+              <span class="d-none d-lg-inline fw-semibold" style="color: var(--text-main);"><%= currentUser.fullName %></span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+              <li><span class="dropdown-item-text text-muted small"><%= currentUser.email %></span></li>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li><a class="dropdown-item text-primary" href="/quick-switch?role=Employee">Switch to Employee View</a></li>
+              <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      <% } else if (currentUser) { %>
+        <!-- Employee Navigation Links (Clean text without redundant icons) -->
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath === '/dashboard' || currentPath === '/' ? 'active' : '' %>" href="/dashboard">
+              Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath.startsWith('/attendance') ? 'active' : '' %>" href="/attendance/view">
+              Attendance
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath.startsWith('/leaves') ? 'active' : '' %>" href="/leaves/list">
+              Leaves
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath.startsWith('/employee/payroll') ? 'active' : '' %>" href="/employee/payroll">
+              Payroll
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link <%= currentPath === '/profile' ? 'active' : '' %>" href="/profile">
+              Profile
+            </a>
+          </li>
+          <li class="nav-item ms-lg-2 dropdown">
+            <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown">
+              <span class="role-badge role-badge-emp">EMPLOYEE</span>
+              <span class="d-none d-lg-inline fw-semibold" style="color: var(--text-main);"><%= currentUser.fullName %></span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+              <li><span class="dropdown-item-text text-muted small"><%= currentUser.email %></span></li>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li><a class="dropdown-item text-primary" href="/quick-switch?role=HR">Switch to HR View</a></li>
+              <li><a class="dropdown-item text-danger" href="/logout">Logout</a></li>
+            </ul>
+          </li>
+        </ul>
+      <% } else { %>
+        <!-- Guest Navigation Links -->
+        <ul class="navbar-nav ms-auto align-items-lg-center gap-1">
+          <li class="nav-item">
+            <a class="nav-link" href="/login">Employee Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/hr/login">HR Login</a>
+          </li>
+        </ul>
+      <% } %>
+    </div>
+  </div>
+</nav>
+
+<main class="container my-4">
+  <% if (typeof successMessage !== 'undefined' && successMessage) { %>
+    <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm" role="alert" style="background-color: rgba(16, 185, 129, 0.15); color: #059669; border: 1px solid rgba(16, 185, 129, 0.3) !important;">
+      <%= successMessage %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  <% } %>
+  <% if (typeof errorMessage !== 'undefined' && errorMessage) { %>
+    <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm" role="alert" style="background-color: rgba(239, 68, 68, 0.15); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.3) !important;">
+      <%= errorMessage %>
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  <% } %>

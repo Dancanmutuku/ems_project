@@ -1,0 +1,156 @@
+<%- include('../partials/header', { title: 'HR Insights & Analytics' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="page-title mb-1">HR Analytics & Workforce Insights</h2>
+    <p class="page-subtitle mb-0">Department distribution, attendance performance, and staffing metrics</p>
+  </div>
+</div>
+
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small fw-semibold text-uppercase tracking-wider">Total Staff</div>
+      <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= employeesCount %></div>
+      <div class="mt-2 pt-2 border-top small text-muted">All registered personnel</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small fw-semibold text-uppercase tracking-wider">Avg Attendance</div>
+      <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= avgAttendance %>%</div>
+      <div class="mt-2 pt-2 border-top small text-muted">30-day punctuality rate</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small fw-semibold text-uppercase tracking-wider">Departments</div>
+      <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= departmentsCount %></div>
+      <div class="mt-2 pt-2 border-top small text-muted">Organizational units</div>
+    </div>
+  </div>
+
+  <div class="col-6 col-md-3">
+    <div class="card p-3">
+      <div class="text-muted small fw-semibold text-uppercase tracking-wider">Active Staff</div>
+      <div class="fs-3 fw-bold mt-1" style="color: var(--text-main);"><%= activeEmployeesCount %></div>
+      <div class="mt-2 pt-2 border-top small text-muted">Currently on payroll</div>
+    </div>
+  </div>
+</div>
+
+<!-- Charts Section -->
+<div class="row g-4 mb-4">
+  <div class="col-12 col-lg-6">
+    <div class="card overflow-hidden">
+      <div class="card-header">
+        <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Department Staff Allocation</h6>
+      </div>
+      <div class="card-body p-4">
+        <canvas id="deptChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-12 col-lg-6">
+    <div class="card overflow-hidden">
+      <div class="card-header">
+        <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Attendance Distribution</h6>
+      </div>
+      <div class="card-body p-4">
+        <canvas id="attChart" height="220"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const deptData = <%- JSON.stringify(deptCounts) %>;
+  const attData = <%- JSON.stringify(attendanceBreakdown) %>;
+
+  function isDarkTheme() {
+    return document.documentElement.getAttribute('data-bs-theme') === 'dark';
+  }
+
+  function getChartColors() {
+    const dark = isDarkTheme();
+    return {
+      textColor: dark ? '#94a3b8' : '#64748b',
+      gridColor: dark ? '#1e293b' : '#f1f5f9',
+      doughnutBorder: dark ? '#111827' : '#ffffff',
+      legendColor: dark ? '#e2e8f0' : '#334155'
+    };
+  }
+
+  const colors = getChartColors();
+
+  // Department Bar Chart
+  const deptChartInstance = new Chart(document.getElementById('deptChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(deptData),
+      datasets: [{
+        label: 'Employees',
+        data: Object.values(deptData),
+        backgroundColor: '#3b82f6',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: { stepSize: 1, color: colors.textColor },
+          grid: { color: colors.gridColor }
+        },
+        x: {
+          ticks: { color: colors.textColor },
+          grid: { display: false }
+        }
+      }
+    }
+  });
+
+  // Attendance Doughnut Chart
+  const attChartInstance = new Chart(document.getElementById('attChart'), {
+    type: 'doughnut',
+    data: {
+      labels: Object.keys(attData),
+      datasets: [{
+        data: Object.values(attData),
+        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+        borderWidth: 2,
+        borderColor: colors.doughnutBorder
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { boxWidth: 12, padding: 16, color: colors.legendColor }
+        }
+      }
+    }
+  });
+
+  // Re-theme charts dynamically when theme toggles
+  window.addEventListener('emsThemeChanged', function() {
+    const updated = getChartColors();
+    deptChartInstance.options.scales.y.ticks.color = updated.textColor;
+    deptChartInstance.options.scales.y.grid.color = updated.gridColor;
+    deptChartInstance.options.scales.x.ticks.color = updated.textColor;
+    deptChartInstance.update();
+
+    attChartInstance.data.datasets[0].borderColor = updated.doughnutBorder;
+    attChartInstance.options.plugins.legend.labels.color = updated.legendColor;
+    attChartInstance.update();
+  });
+</script>
+
+<%- include('../partials/footer') %>

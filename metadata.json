@@ -1,0 +1,6 @@
+{
+  "name": "Employee Management System",
+  "description": "Employee Management System with HR and Employee portals, attendance tracking, leave requests, and payroll management.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

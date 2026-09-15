@@ -1,0 +1,69 @@
+<%- include('../partials/header', { title: 'Department Management' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="page-title mb-1">Departments</h2>
+    <p class="page-subtitle mb-0">Organize company functional units and team allocations</p>
+  </div>
+  <a href="/hr/departments/add" class="btn btn-primary">
+    Add Department
+  </a>
+</div>
+
+<div class="card overflow-hidden">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Active Departments</h6>
+      <span class="badge-soft-secondary"><%= departments.length %> total</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col" style="width: 80px;">#</th>
+            <th scope="col">Department Name</th>
+            <th scope="col">Description</th>
+            <th scope="col" class="text-center">Staff Count</th>
+            <th scope="col" class="text-center" style="width: 140px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (departments.length > 0) { %>
+            <% departments.forEach(function(d) { %>
+              <tr>
+                <td class="small fw-semibold text-muted"><%= d.id %></td>
+                <td class="fw-semibold" style="color: var(--text-main);"><%= d.name %></td>
+                <td class="small text-muted"><%= d.description || 'No description provided' %></td>
+                <td class="text-center">
+                  <span class="badge-soft-primary"><%= d.employeeCount || 0 %> Members</span>
+                </td>
+                <td class="text-center">
+                  <div class="d-flex justify-content-center gap-1">
+                    <a href="/hr/departments/<%= d.id %>/edit" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Edit">
+                      Edit
+                    </a>
+                    <form action="/hr/departments/<%= d.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this department?');">
+                      <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Delete">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" class="text-center py-5 text-muted">
+                No departments created yet. Click "Add Department" to begin.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

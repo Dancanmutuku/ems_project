@@ -1,0 +1,82 @@
+<%- include('../partials/header', { title: 'Employees Management' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="page-title mb-1">Employee Directory</h2>
+    <p class="page-subtitle mb-0">Manage workforce directory, compensation, and contract statuses</p>
+  </div>
+  <a href="/hr/employees/add" class="btn btn-primary">
+    Add New Employee
+  </a>
+</div>
+
+<div class="card overflow-hidden">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Staff Records</h6>
+      <span class="badge-soft-secondary"><%= employees.length %> total</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th scope="col" style="width: 100px;">ID</th>
+            <th scope="col">Name & Email</th>
+            <th scope="col">Role</th>
+            <th scope="col">Department</th>
+            <th scope="col">Phone</th>
+            <th scope="col">Salary (KSh)</th>
+            <th scope="col">Status</th>
+            <th scope="col" class="text-center" style="width: 130px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (employees.length > 0) { %>
+            <% employees.forEach(function(emp) { %>
+              <tr>
+                <td class="small fw-semibold text-muted"><%= emp.employeeId %></td>
+                <td>
+                  <div class="fw-semibold" style="color: var(--text-main);"><%= emp.fullName %></div>
+                  <small class="text-muted"><%= emp.email %></small>
+                </td>
+                <td style="color: var(--text-main);"><%= emp.jobTitle %></td>
+                <td>
+                  <span class="badge-soft-secondary"><%= emp.departmentName %></span>
+                </td>
+                <td class="small text-muted"><%= emp.contact %></td>
+                <td class="fw-semibold" style="color: var(--text-main);">KSh <%= Number(emp.salary).toLocaleString() %></td>
+                <td>
+                  <span class="<%= emp.isActiveEmployee ? 'badge-soft-success' : 'badge-soft-danger' %>">
+                    <%= emp.isActiveEmployee ? 'Active' : 'Inactive' %>
+                  </span>
+                </td>
+                <td class="text-center">
+                  <div class="d-flex justify-content-center gap-1">
+                    <a href="/hr/employees/<%= emp.id %>/edit" class="btn btn-sm btn-outline-secondary py-1 px-2" title="Edit">
+                      Edit
+                    </a>
+                    <form action="/hr/employees/<%= emp.id %>/delete" method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to delete <%= emp.fullName %>?');">
+                      <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Delete">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="8" class="text-center py-5 text-muted">
+                No employees registered yet. Click "Add New Employee" to get started.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

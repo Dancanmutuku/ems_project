@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payslip - <%= employee.fullName %> - <%= payroll.periodStart %></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('ems_theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      document.documentElement.setAttribute('data-bs-theme', savedTheme);
+    })();
+  </script>
+  <style>
+    :root {
+      --bg-body: #f8fafc;
+      --card-bg: rgba(255, 255, 255, 0.94);
+      --card-subtle: rgba(248, 250, 252, 0.85);
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --org-img-opacity: 0.38;
+      --org-tint-bg: rgba(248, 250, 252, 0.74);
+      --theme-segment-bg: #e2e8f0;
+      --theme-segment-active-bg: #ffffff;
+      --theme-segment-active-text: #0f172a;
+    }
+    [data-bs-theme="dark"] {
+      --bg-body: #0b0f19;
+      --card-bg: rgba(17, 24, 39, 0.92);
+      --card-subtle: rgba(31, 41, 55, 0.75);
+      --border-color: #374151;
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --org-img-opacity: 0.28;
+      --org-tint-bg: rgba(11, 15, 25, 0.82);
+      --theme-segment-bg: #1f2937;
+      --theme-segment-active-bg: #374151;
+      --theme-segment-active-text: #f9fafb;
+    }
+    body {
+      background-color: var(--bg-body);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 30px 15px;
+      color: var(--text-main);
+      position: relative;
+      min-height: 100vh;
+    }
+
+    /* Blurred Organization Background */
+    .org-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: -1;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .org-backdrop-img {
+      position: absolute;
+      top: -24px;
+      left: -24px;
+      right: -24px;
+      bottom: -24px;
+      background-image: url('/assets/images/org_background_1789466318908.jpg');
+      background-size: cover;
+      background-position: center center;
+      background-repeat: no-repeat;
+      filter: blur(22px);
+      transform: scale(1.08);
+      opacity: var(--org-img-opacity);
+      transition: opacity 0.3s ease;
+    }
+
+    .org-backdrop-tint {
+      position: absolute;
+      inset: 0;
+      background-color: var(--org-tint-bg);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      transition: background-color 0.3s ease;
+    }
+
+    .theme-mode-switch {
+      display: inline-flex;
+      align-items: center;
+      background-color: var(--theme-segment-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 9999px;
+      padding: 2px;
+      gap: 2px;
+      user-select: none;
+    }
+
+    .theme-mode-btn {
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 600;
+      padding: 0.2rem 0.65rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      line-height: 1.2;
+      transition: all 0.15s ease-in-out;
+    }
+
+    .theme-mode-btn:hover {
+      color: var(--text-main);
+    }
+
+    [data-bs-theme="light"] #themeBtnLight {
+      background-color: var(--theme-segment-active-bg);
+      color: var(--theme-segment-active-text);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+
+    [data-bs-theme="dark"] #themeBtnDark {
+      background-color: var(--theme-segment-active-bg);
+      color: var(--theme-segment-active-text);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+    }
+
+    .payslip-card {
+      max-width: 800px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 40px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .slip-box {
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      background-color: var(--card-subtle);
+    }
+    @media print {
+      body {
+        background: #ffffff !important;
+        color: #0f172a !important;
+        padding: 0;
+      }
+      .org-backdrop {
+        display: none !important;
+      }
+      .payslip-card {
+        background: #ffffff !important;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+      }
+      .slip-box {
+        background-color: #fafafa !important;
+        border-color: #e2e8f0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Blurred Organization Background Layer -->
+<div class="org-backdrop" aria-hidden="true">
+  <div class="org-backdrop-img"></div>
+  <div class="org-backdrop-tint"></div>
+</div>
+
+<div class="payslip-card">
+  <!-- Actions toolbar -->
+  <div class="d-flex justify-content-between align-items-center mb-4 no-print pb-3 border-bottom" style="border-color: var(--border-color) !important;">
+    <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm px-3">
+      Back
+    </a>
+    <div class="d-flex align-items-center gap-2">
+      <!-- Dark / Light Mode Switch -->
+      <div class="theme-mode-switch" role="group" aria-label="Theme mode switcher">
+        <button type="button" class="theme-mode-btn" id="themeBtnLight" onclick="setAppTheme('light')" title="Switch to Light Mode">
+          Light
+        </button>
+        <button type="button" class="theme-mode-btn" id="themeBtnDark" onclick="setAppTheme('dark')" title="Switch to Dark Mode">
+          Dark
+        </button>
+      </div>
+      <button onclick="window.print()" class="btn btn-primary btn-sm px-4">
+        Print / Save as PDF
+      </button>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="text-center mb-4 border-bottom pb-3" style="border-color: var(--border-color) !important;">
+    <h3 class="fw-bold mb-1" style="color: var(--text-main);">TECHPAK TECHNOLOGIES LIMITED</h3>
+    <p class="text-muted small mb-2">P.O. Box 45678 - 00100, Nairobi, Kenya &bull; Tel: +254 20 765 4321</p>
+    <span class="badge text-uppercase small fw-semibold" style="background-color: var(--card-subtle); color: var(--text-muted); border: 1px solid var(--border-color);">Official Payslip Statement</span>
+  </div>
+
+  <!-- Employee and Period Details -->
+  <div class="row g-3 mb-4">
+    <div class="col-6">
+      <table class="table table-sm table-borderless mb-0">
+        <tr>
+          <th class="text-muted w-40" style="font-weight: 500;">Employee Name:</th>
+          <td class="fw-bold" style="color: var(--text-main);"><%= employee.fullName %></td>
+        </tr>
+        <tr>
+          <th class="text-muted" style="font-weight: 500;">Employee ID:</th>
+          <td style="color: var(--text-main);"><%= employee.employeeId %></td>
+        </tr>
+        <tr>
+          <th class="text-muted" style="font-weight: 500;">Job Title:</th>
+          <td style="color: var(--text-main);"><%= employee.jobTitle %></td>
+        </tr>
+        <tr>
+          <th class="text-muted" style="font-weight: 500;">Department:</th>
+          <td style="color: var(--text-main);"><%= department ? department.name : 'Engineering' %></td>
+        </tr>
+      </table>
+    </div>
+    <div class="col-6">
+      <table class="table table-sm table-borderless mb-0">
+        <tr>
+          <th class="text-muted w-40" style="font-weight: 500;">Pay Period:</th>
+          <td class="fw-bold" style="color: var(--text-main);"><%= payroll.periodStart %> to <%= payroll.periodEnd %></td>
+        </tr>
+        <tr>
+          <th class="text-muted" style="font-weight: 500;">Payment Status:</th>
+          <td>
+            <span class="badge <%= payroll.status === 'Paid' ? 'bg-success-subtle text-success border border-success-subtle' : 'bg-warning-subtle text-warning border border-warning-subtle' %>">
+              <%= payroll.status %>
+            </span>
+          </td>
+        </tr>
+        <tr>
+          <th class="text-muted" style="font-weight: 500;">Payment Date:</th>
+          <td style="color: var(--text-main);"><%= payroll.periodEnd %></td>
+        </tr>
+        <tr>
+          <th class="text-muted" style="font-weight: 500;">Currency:</th>
+          <td style="color: var(--text-main);">Kenyan Shilling (KES / KSh)</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- Earnings & Deductions -->
+  <div class="row g-4 mb-4">
+    <div class="col-6">
+      <div class="slip-box h-100">
+        <h6 class="fw-bold border-bottom pb-2 mb-3" style="color: var(--text-main); border-color: var(--border-color) !important;">EARNINGS</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Basic Salary</span>
+          <span class="fw-semibold" style="color: var(--text-main);">KSh <%= Number(payroll.basicSalary).toLocaleString() %></span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">Allowances / Benefits</span>
+          <span class="fw-semibold" style="color: var(--text-main);">KSh <%= Number(payroll.allowances).toLocaleString() %></span>
+        </div>
+        <div class="border-top pt-2 mt-3 d-flex justify-content-between fw-bold" style="color: var(--text-main); border-color: var(--border-color) !important;">
+          <span>Total Gross Pay</span>
+          <span>KSh <%= Number(payroll.grossSalary).toLocaleString() %></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-6">
+      <div class="slip-box h-100">
+        <h6 class="fw-bold border-bottom pb-2 mb-3" style="color: var(--text-main); border-color: var(--border-color) !important;">STATUTORY DEDUCTIONS</h6>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">NSSF (Tier 1 & 2)</span>
+          <span class="fw-semibold text-danger">- KSh <%= Number(payroll.nssf).toFixed(2) %></span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">SHA / NHIF Health Fund</span>
+          <span class="fw-semibold text-danger">- KSh <%= Number(payroll.sha).toFixed(2) %></span>
+        </div>
+        <div class="d-flex justify-content-between mb-2">
+          <span class="text-muted">PAYE Income Tax</span>
+          <span class="fw-semibold text-danger">- KSh <%= Number(payroll.paye).toFixed(2) %></span>
+        </div>
+        <div class="border-top pt-2 mt-3 d-flex justify-content-between fw-bold text-danger" style="border-color: var(--border-color) !important;">
+          <span>Total Deductions</span>
+          <span>- KSh <%= (Number(payroll.nssf) + Number(payroll.sha) + Number(payroll.paye)).toFixed(2) %></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Net Pay Highlight -->
+  <div class="rounded-3 p-4 text-center mb-4 slip-box">
+    <span class="text-muted text-uppercase small fw-semibold d-block mb-1">Net Take-Home Pay</span>
+    <h2 class="fw-bold mb-0" style="color: var(--text-main);">KSh <%= Number(payroll.netPay).toLocaleString() %></h2>
+  </div>
+
+  <!-- Signatures -->
+  <div class="row pt-4 text-center text-muted small">
+    <div class="col-6">
+      <div class="border-top pt-2" style="max-width: 200px; margin: 0 auto; border-color: var(--border-color) !important;">Employer Signature</div>
+    </div>
+    <div class="col-6">
+      <div class="border-top pt-2" style="max-width: 200px; margin: 0 auto; border-color: var(--border-color) !important;">Employee Signature</div>
+    </div>
+  </div>
+
+  <div class="text-center mt-4 text-muted" style="font-size: 11px;">
+    This is a computer-generated payslip and does not require an embossed seal.
+  </div>
+
+</div>
+
+<script>
+  function setAppTheme(newTheme) {
+    const htmlEl = document.documentElement;
+    htmlEl.setAttribute('data-bs-theme', newTheme);
+    localStorage.setItem('ems_theme', newTheme);
+    updateThemeButtons(newTheme);
+  }
+
+  function updateThemeButtons(theme) {
+    const btnLight = document.getElementById('themeBtnLight');
+    const btnDark = document.getElementById('themeBtnDark');
+    if (btnLight) btnLight.setAttribute('aria-pressed', theme === 'light');
+    if (btnDark) btnDark.setAttribute('aria-pressed', theme === 'dark');
+  }
+
+  (function() {
+    const theme = document.documentElement.getAttribute('data-bs-theme') || 'light';
+    updateThemeButtons(theme);
+  })();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,136 @@
+<%- include('../partials/header', { title: employee ? 'Edit Employee' : 'Add Employee' }) %>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9">
+    <div class="card overflow-hidden">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold" style="color: var(--text-main);">
+          <%= employee ? 'Edit Employee Profile' : 'Add New Employee' %>
+        </h5>
+        <a href="/hr/employees" class="btn btn-outline-secondary btn-sm py-1 px-3">
+          Back
+        </a>
+      </div>
+
+      <div class="card-body p-4">
+        <form method="POST" action="<%= employee ? '/hr/employees/' + employee.id + '/edit' : '/hr/employees/add' %>">
+
+          <!-- User Account Information -->
+          <h6 class="text-uppercase tracking-wider small fw-bold mb-3" style="color: var(--text-main);">
+            System Account
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-6">
+              <label class="form-label">Full Name *</label>
+              <input type="text" name="fullName" class="form-control" value="<%= employee ? employee.fullName : '' %>" required placeholder="e.g. Dancan Mutuku">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Email Address *</label>
+              <input type="email" name="email" class="form-control" value="<%= employee ? employee.email : '' %>" required placeholder="name@company.com">
+            </div>
+            <% if (!employee) { %>
+              <div class="col-md-6">
+                <label class="form-label">System Username *</label>
+                <input type="text" name="username" class="form-control" required placeholder="e.g. dancan">
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Initial Password *</label>
+                <input type="password" name="password" class="form-control" required placeholder="Enter password" value="password123">
+              </div>
+            <% } %>
+          </div>
+
+          <hr class="my-4" style="border-color: var(--border-color);">
+
+          <!-- Job Details -->
+          <h6 class="text-uppercase tracking-wider small fw-bold mb-3" style="color: var(--text-main);">
+            Position & Remuneration
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label">Employee ID *</label>
+              <input type="text" name="employeeId" class="form-control" value="<%= employee ? employee.employeeId : 'EMP-' + Math.floor(100 + Math.random() * 900) %>" required>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Job Title *</label>
+              <input type="text" name="jobTitle" class="form-control" value="<%= employee ? employee.jobTitle : '' %>" required placeholder="e.g. Senior Engineer">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Department *</label>
+              <select name="departmentId" class="form-select" required>
+                <% departments.forEach(function(d) { %>
+                  <option value="<%= d.id %>" <%= employee && Number(employee.departmentId) === Number(d.id) ? 'selected' : '' %>>
+                    <%= d.name %>
+                  </option>
+                <% }); %>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label">Monthly Basic Salary (KSh) *</label>
+              <input type="number" step="0.01" name="salary" class="form-control" value="<%= employee ? employee.salary : 50000 %>" required>
+              <small class="text-muted">Calculates NSSF, SHA & PAYE automatically</small>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Hire Date</label>
+              <input type="date" name="hireDate" class="form-control" value="<%= employee ? employee.hireDate : new Date().toISOString().split('T')[0] %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Contract End Date</label>
+              <input type="date" name="contractEnd" class="form-control" value="<%= employee ? employee.contractEnd : '' %>">
+            </div>
+          </div>
+
+          <hr class="my-4" style="border-color: var(--border-color);">
+
+          <!-- Personal Information -->
+          <h6 class="text-uppercase tracking-wider small fw-bold mb-3" style="color: var(--text-main);">
+            Personal & Emergency Details
+          </h6>
+          <div class="row g-3 mb-4">
+            <div class="col-md-4">
+              <label class="form-label">Phone Contact</label>
+              <input type="text" name="contact" class="form-control" value="<%= employee ? employee.contact : '' %>" placeholder="+254 ...">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Date of Birth</label>
+              <input type="date" name="dob" class="form-control" value="<%= employee ? employee.dob : '' %>">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label">Gender</label>
+              <select name="gender" class="form-select">
+                <option value="M" <%= employee && employee.gender === 'M' ? 'selected' : '' %>>Male</option>
+                <option value="F" <%= employee && employee.gender === 'F' ? 'selected' : '' %>>Female</option>
+                <option value="O" <%= employee && employee.gender === 'O' ? 'selected' : '' %>>Other</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Emergency Contact Name</label>
+              <input type="text" name="emergencyContactName" class="form-control" value="<%= employee ? employee.emergencyContactName : '' %>" placeholder="Relative or Spouse name">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Emergency Contact Phone</label>
+              <input type="text" name="emergencyContactPhone" class="form-control" value="<%= employee ? employee.emergencyContactPhone : '' %>" placeholder="+254 ...">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Physical Address</label>
+              <textarea name="address" class="form-control" rows="2" placeholder="Residential address"><%= employee ? employee.address : '' %></textarea>
+            </div>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-2">
+            <a href="/hr/employees" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <%= employee ? 'Update Profile' : 'Save Employee' %>
+            </button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

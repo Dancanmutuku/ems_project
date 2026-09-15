@@ -1,0 +1,71 @@
+<%- include('../partials/header', { title: 'My Payroll & Payslips' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="page-title mb-1">My Salary & Payslips</h2>
+    <p class="page-subtitle mb-0">View monthly compensation statements, taxes, and statutory contributions</p>
+  </div>
+</div>
+
+<div class="card overflow-hidden">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Statement History</h6>
+      <span class="badge-soft-secondary"><%= payrolls.length %> records</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Pay Period</th>
+            <th>Basic Salary</th>
+            <th>Allowances</th>
+            <th>Gross Pay</th>
+            <th>NSSF</th>
+            <th>SHA</th>
+            <th>PAYE</th>
+            <th>Net Take-Home</th>
+            <th>Status</th>
+            <th class="text-center" style="width: 120px;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (payrolls.length > 0) { %>
+            <% payrolls.forEach(function(p) { %>
+              <tr>
+                <td class="small fw-semibold" style="color: var(--text-main);"><%= p.periodStart %> &rarr; <%= p.periodEnd %></td>
+                <td>KSh <%= Number(p.basicSalary).toLocaleString() %></td>
+                <td>KSh <%= Number(p.allowances).toLocaleString() %></td>
+                <td class="fw-semibold">KSh <%= Number(p.grossSalary).toLocaleString() %></td>
+                <td class="small text-muted"><%= Number(p.nssf).toFixed(2) %></td>
+                <td class="small text-muted"><%= Number(p.sha).toFixed(2) %></td>
+                <td class="small text-muted"><%= Number(p.paye).toFixed(2) %></td>
+                <td class="fw-bold" style="color: var(--text-main);">KSh <%= Number(p.netPay).toLocaleString() %></td>
+                <td>
+                  <span class="<%= p.status === 'Paid' ? 'badge-soft-success' : 'badge-soft-warning' %>">
+                    <%= p.status %>
+                  </span>
+                </td>
+                <td class="text-center">
+                  <a href="/employee/payroll/<%= p.id %>/pdf" target="_blank" class="btn btn-outline-secondary btn-sm py-1 px-3">
+                    Slip
+                  </a>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="10" class="text-center py-5 text-muted">
+                No payslips found for your account.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

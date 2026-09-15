@@ -1,0 +1,93 @@
+<%- include('../partials/header', { title: 'Payroll Management' }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+  <div>
+    <h2 class="page-title mb-1">Payroll Management</h2>
+    <p class="page-subtitle mb-0">Statutory deductions (Kenya NSSF, SHA, PAYE) and net salary disbursements</p>
+  </div>
+  <a href="/hr/payrolls/add" class="btn btn-primary">
+    Generate New Payroll
+  </a>
+</div>
+
+<div class="card overflow-hidden">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="d-flex align-items-center gap-2">
+      <h6 class="mb-0 fw-bold" style="color: var(--text-main);">Payroll Records</h6>
+      <span class="badge-soft-secondary"><%= payrolls.length %> total</span>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead>
+          <tr>
+            <th>Employee</th>
+            <th>Pay Period</th>
+            <th>Basic</th>
+            <th>Allowances</th>
+            <th>Gross</th>
+            <th>NSSF</th>
+            <th>SHA</th>
+            <th>PAYE</th>
+            <th>Net Pay</th>
+            <th>Status</th>
+            <th class="text-center" style="width: 170px;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (payrolls.length > 0) { %>
+            <% payrolls.forEach(function(p) { %>
+              <tr>
+                <td>
+                  <div class="fw-semibold" style="color: var(--text-main);"><%= p.employeeName %></div>
+                  <small class="text-muted"><%= p.employeeId %></small>
+                </td>
+                <td class="small text-muted"><%= p.periodStart %> &rarr; <%= p.periodEnd %></td>
+                <td>KSh <%= Number(p.basicSalary).toLocaleString() %></td>
+                <td>KSh <%= Number(p.allowances).toLocaleString() %></td>
+                <td class="fw-semibold">KSh <%= Number(p.grossSalary).toLocaleString() %></td>
+                <td class="small text-muted"><%= Number(p.nssf).toFixed(2) %></td>
+                <td class="small text-muted"><%= Number(p.sha).toFixed(2) %></td>
+                <td class="small text-muted"><%= Number(p.paye).toFixed(2) %></td>
+                <td class="fw-bold" style="color: var(--text-main);">KSh <%= Number(p.netPay).toLocaleString() %></td>
+                <td>
+                  <span class="<%= p.status === 'Paid' ? 'badge-soft-success' : 'badge-soft-warning' %>">
+                    <%= p.status %>
+                  </span>
+                </td>
+                <td class="text-center">
+                  <div class="d-flex justify-content-center gap-1">
+                    <% if (p.status !== 'Paid') { %>
+                      <form action="/payroll/mark-paid/<%= p.id %>" method="POST" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-primary py-1 px-2" title="Mark as Paid">
+                          Pay
+                        </button>
+                      </form>
+                    <% } %>
+                    <a href="/employee/payroll/<%= p.id %>/pdf" class="btn btn-sm btn-outline-secondary py-1 px-2" target="_blank" title="View Payslip">
+                      Slip
+                    </a>
+                    <form action="/hr/payrolls/delete/<%= p.id %>" method="POST" class="d-inline" onsubmit="return confirm('Delete this payroll record?');">
+                      <button type="submit" class="btn btn-sm btn-outline-danger py-1 px-2" title="Delete Payroll">
+                        Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="11" class="text-center py-5 text-muted">
+                No payroll entries created yet.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

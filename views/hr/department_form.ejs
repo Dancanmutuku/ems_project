@@ -1,0 +1,39 @@
+<%- include('../partials/header', { title: department ? 'Edit Department' : 'Add Department' }) %>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="card overflow-hidden">
+      <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0 fw-bold" style="color: var(--text-main);">
+          <%= department ? 'Edit Department' : 'Add New Department' %>
+        </h5>
+        <a href="/hr/departments" class="btn btn-outline-secondary btn-sm py-1 px-3">
+          Back
+        </a>
+      </div>
+
+      <div class="card-body p-4">
+        <form method="POST" action="<%= department ? '/hr/departments/' + department.id + '/edit' : '/hr/departments/add' %>">
+          <div class="mb-3">
+            <label class="form-label">Department Name *</label>
+            <input type="text" name="name" class="form-control" value="<%= department ? department.name : '' %>" required placeholder="e.g. Finance & Accounting">
+          </div>
+
+          <div class="mb-4">
+            <label class="form-label">Description</label>
+            <textarea name="description" class="form-control" rows="4" placeholder="Brief outline of the department's mandate and objectives"><%= department ? department.description : '' %></textarea>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2 pt-2">
+            <a href="/hr/departments" class="btn btn-outline-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">
+              <%= department ? 'Update Department' : 'Save Department' %>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
