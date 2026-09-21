@@ -246,6 +246,44 @@
             font-weight: 600;
             border-color: var(--border) var(--border) var(--surface);
         }
+
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .card-header,
+        .list-group-item {
+            overflow-wrap: anywhere;
+        }
+
+        @media (max-width: 575.98px) {
+            .navbar-brand {
+                max-width: calc(100vw - 5rem);
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+            }
+
+            main.container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+
+            .card-body {
+                padding: 1rem;
+            }
+
+            .btn-group,
+            .btn-group-sm {
+                flex-wrap: wrap;
+                gap: 0.35rem;
+            }
+
+            .btn-group > .btn,
+            .btn-group-sm > .btn {
+                border-radius: 6px !important;
+            }
+        }
     </style>
     {% block extra_css %}{% endblock %}
 </head>
@@ -264,6 +302,7 @@
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item"><a class="nav-link" href="{% url 'hr_employee_list' %}">Employees</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'hr_department_list' %}">Departments</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'hr_kpi_list' %}">Performance</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'salary_report' %}">Payrolls</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'hr_leave_list' %}">Leaves</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'employee_report' %}">Reports</a></li>

@@ -2,21 +2,21 @@
 {% block title %}Employee Dashboard{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-4 mt-md-5">
 
   <!-- Welcome Card -->
   <div class="card shadow-lg border-0 rounded-4 mb-4">
     <div class="card-body d-flex flex-column flex-md-row align-items-center gap-3 justify-content-between">
 
       <!-- Profile Info -->
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center gap-3 min-w-0">
         {% if employee.profile_picture %}
           <img src="{{ employee.profile_picture.url }}" class="rounded-circle shadow border" width="80" height="80" alt="Profile Picture">
         {% else %}
           <img src="https://via.placeholder.com/80" class="rounded-circle shadow border" alt="Default Profile">
         {% endif %}
-        <div>
-          <h4 class="mb-1 fw-bold">Welcome, {{ employee.user.get_full_name|default:employee.user.username }}</h4>
+        <div class="min-w-0">
+          <h4 class="mb-1 fw-bold text-break">Welcome, {{ employee.user.get_full_name|default:employee.user.username }}</h4>
           <small class="text-muted">{{ employee.job_title }} | {{ employee.department }}</small><br>
           <small class="text-muted">Contract: {{ employee.hire_date|date:"Y-m-d" }} → {{ employee.contract_end|date:"Y-m-d" }}</small>
         </div>
@@ -147,7 +147,7 @@
           <ul class="list-group list-group-flush mb-0">
             {% for leave in leaves %}
             <li class="list-group-item d-flex justify-content-between align-items-center">
-              <span>{{ leave.leave_type }}: {{ leave.start_date|date:"Y-m-d" }} → {{ leave.end_date|date:"Y-m-d" }}</span>
+              <span class="me-2 text-break">{{ leave.leave_type }}: {{ leave.start_date|date:"Y-m-d" }} → {{ leave.end_date|date:"Y-m-d" }}</span>
               <span class="badge 
                 {% if leave.status == 'pending' %}bg-warning text-dark
                 {% elif leave.status == 'approved' %}bg-success

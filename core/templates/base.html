@@ -214,6 +214,48 @@
       border-color: var(--border);
     }
 
+    .table-responsive {
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .card-header,
+    .list-group-item {
+      overflow-wrap: anywhere;
+    }
+
+    @media (max-width: 575.98px) {
+      body {
+        padding-top: 62px;
+      }
+
+      main.container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .navbar-brand {
+        max-width: calc(100vw - 5rem);
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .card-body {
+        padding: 1rem;
+      }
+
+      .btn-group,
+      .btn-group-sm {
+        flex-wrap: wrap;
+        gap: 0.35rem;
+      }
+
+      .btn-group > .btn,
+      .btn-group-sm > .btn {
+        border-radius: 6px !important;
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -237,6 +279,10 @@
           <!-- My Profile link -->
           <li class="nav-item">
             <a class="nav-link" href="{% url 'employee_profile' %}">My Profile</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="{% url 'employee_kpi_list' %}">Performance</a>
           </li>
 
           <li class="nav-item ms-2">

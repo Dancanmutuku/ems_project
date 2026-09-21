@@ -147,21 +147,18 @@
                                 <td>{{ leave.requested_at|date:"Y-m-d H:i" }}</td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="{% url 'leave_process' leave.pk 'approve' %}" 
-                                           class="btn btn-success"
-                                           onclick="return confirm('Approve this leave request?')">
-                                           Approve
-                                        </a>
-                                        <a href="{% url 'leave_process' leave.pk 'reject' %}" 
-                                           class="btn btn-danger"
-                                           onclick="return confirm('Reject this leave request?')">
-                                           Reject
-                                        </a>
-                                        <a href="{% url 'leave_process' leave.pk 'pending' %}" 
-                                           class="btn btn-warning"
-                                           onclick="return confirm('Mark this leave request as Pending?')">
-                                           Pending
-                                        </a>
+                                        <form method="post" action="{% url 'leave_process' leave.pk 'approve' %}" class="d-inline" onsubmit="return confirm('Approve this leave request?')">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-success">Approve</button>
+                                        </form>
+                                        <form method="post" action="{% url 'leave_process' leave.pk 'reject' %}" class="d-inline" onsubmit="return confirm('Reject this leave request?')">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger">Reject</button>
+                                        </form>
+                                        <form method="post" action="{% url 'leave_process' leave.pk 'pending' %}" class="d-inline" onsubmit="return confirm('Mark this leave request as Pending?')">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-warning">Pending</button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

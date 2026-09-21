@@ -42,6 +42,13 @@ urlpatterns = [
     path("hr/departments/<int:pk>/edit/", views.hr_department_edit, name="hr_department_edit"),
     path("hr/departments/<int:pk>/delete/", views.hr_department_delete, name="hr_department_delete"),
 
+    # Performance Reviews
+    path("hr/performance/", views.hr_kpi_list, name="hr_kpi_list"),
+    path("hr/performance/add/", views.hr_kpi_create, name="hr_kpi_create"),
+    path("hr/performance/<int:pk>/edit/", views.hr_kpi_edit, name="hr_kpi_edit"),
+    path("hr/performance/<int:pk>/delete/", views.hr_kpi_delete, name="hr_kpi_delete"),
+    path("performance/", views.employee_kpi_list, name="employee_kpi_list"),
+
     # Leaves (HR)
     path("hr/leaves/", views.hr_leave_list, name="hr_leave_list"),
 

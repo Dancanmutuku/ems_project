@@ -13,7 +13,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth.models import User
-from django.db import models
+from django.db import models, transaction
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from xhtml2pdf import pisa
@@ -21,8 +21,8 @@ from django.conf import settings
 from django.views.decorators.http import require_POST
 from django.forms import modelform_factory
 
-from .models import LEAVE_STATUS, Employee, Attendance, LeaveRequest, Payroll, Notification, Department
-from .forms import EmployeeForm, LeaveRequestForm, AttendanceForm, DepartmentForm, UserForm
+from .models import LEAVE_STATUS, Employee, Attendance, LeaveRequest, Payroll, Notification, Department, KPI
+from .forms import EmployeeForm, LeaveRequestForm, AttendanceForm, DepartmentForm, UserForm, KPIForm
 from .utils import calc_nssf, calc_sha, calc_paye
 from .forms import PayrollForm  # we’ll create this next
 from django.core.mail import send_mail
@@ -209,7 +209,32 @@ def hr_dashboard(request):
 @group_required('HR')
 def hr_employee_list(request):
     employees = Employee.objects.select_related('user', 'department').all()
-    return render(request, 'hr/hr_employee_list.html', {'employees': employees})
+    query = request.GET.get('q', '').strip()
+    department_id = request.GET.get('department', '').strip()
+    status = request.GET.get('status', '').strip()
+
+    if query:
+        employees = employees.filter(
+            models.Q(user__first_name__icontains=query)
+            | models.Q(user__last_name__icontains=query)
+            | models.Q(user__username__icontains=query)
+            | models.Q(employee_id__icontains=query)
+            | models.Q(job_title__icontains=query)
+        )
+    if department_id.isdigit():
+        employees = employees.filter(department_id=department_id)
+    if status == 'active':
+        employees = employees.filter(is_active_employee=True)
+    elif status == 'inactive':
+        employees = employees.filter(is_active_employee=False)
+
+    return render(request, 'hr/hr_employee_list.html', {
+        'employees': employees,
+        'departments': Department.objects.order_by('name'),
+        'query': query,
+        'selected_department': department_id,
+        'selected_status': status,
+    })
 
 @login_required
 @group_required('HR')
@@ -325,6 +350,70 @@ def hr_department_delete(request, pk):
     return render(request, "core/confirm_delete.html", {"object": department, "type": "Department"})
 
 # ================================================================
+# HR Management: Performance Reviews
+# ================================================================
+@login_required
+@group_required('HR')
+def hr_kpi_list(request):
+    kpis = KPI.objects.select_related('employee', 'employee__user').order_by('-review_date', 'employee__user__last_name')
+    query = request.GET.get('q', '').strip()
+    if query:
+        kpis = kpis.filter(
+            models.Q(employee__user__first_name__icontains=query)
+            | models.Q(employee__user__last_name__icontains=query)
+            | models.Q(employee__user__username__icontains=query)
+            | models.Q(name__icontains=query)
+        )
+    return render(request, 'hr/kpi_list.html', {'kpis': kpis, 'query': query})
+
+@login_required
+@group_required('HR')
+def hr_kpi_create(request):
+    if request.method == 'POST':
+        form = KPIForm(request.POST)
+        if form.is_valid():
+            kpi = form.save()
+            Notification.objects.create(
+                user=kpi.employee.user,
+                title='Performance review updated',
+                message=f'KPI review added: {kpi.name}.',
+            )
+            messages.success(request, 'Performance review added successfully.')
+            return redirect('hr_kpi_list')
+    else:
+        form = KPIForm()
+    return render(request, 'hr/kpi_form.html', {'form': form, 'title': 'Add Performance Review'})
+
+@login_required
+@group_required('HR')
+def hr_kpi_edit(request, pk):
+    kpi = get_object_or_404(KPI, pk=pk)
+    if request.method == 'POST':
+        form = KPIForm(request.POST, instance=kpi)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Performance review updated successfully.')
+            return redirect('hr_kpi_list')
+    else:
+        form = KPIForm(instance=kpi)
+    return render(request, 'hr/kpi_form.html', {'form': form, 'title': 'Edit Performance Review'})
+
+@login_required
+@group_required('HR')
+@require_POST
+def hr_kpi_delete(request, pk):
+    kpi = get_object_or_404(KPI, pk=pk)
+    kpi.delete()
+    messages.success(request, 'Performance review deleted successfully.')
+    return redirect('hr_kpi_list')
+
+@login_required
+def employee_kpi_list(request):
+    employee = get_object_or_404(Employee, user=request.user)
+    kpis = employee.kpis.order_by('-review_date', 'name')
+    return render(request, 'core/employee_kpi_list.html', {'employee': employee, 'kpis': kpis})
+
+# ================================================================
 # Leave Management
 # ================================================================
 @login_required
@@ -427,6 +516,16 @@ def leave_request_create(request):
                 # Regular employee: assign themselves
                 leave.employee = get_object_or_404(Employee, user=request.user)
 
+            overlapping = LeaveRequest.objects.filter(
+                employee=leave.employee,
+                status__in=['P', 'A'],
+                start_date__lte=leave.end_date,
+                end_date__gte=leave.start_date,
+            )
+            if overlapping.exists():
+                form.add_error(None, 'This employee already has a pending or approved leave request for part of these dates.')
+                return render(request, "core/leave_request_form.html", {"form": form, "is_hr": is_hr_user})
+
             leave.status = 'P'
             leave.requested_at = timezone.now()
             leave.save()
@@ -495,15 +594,20 @@ from core.decorators import group_required
 
 @login_required
 @group_required("HR")
+@require_POST
 def leave_process(request, pk, action):
     """
     HR can approve, reject, or keep a leave pending.
     Deducts leave days from the correct balance if approved.
     Sends notifications and emails to the employee.
     """
-    leave = get_object_or_404(LeaveRequest, pk=pk)
-    employee = leave.employee
-    leave_days = leave.duration()  # <-- call the method to get number of days
+    with transaction.atomic():
+        leave = get_object_or_404(
+            LeaveRequest.objects.select_for_update().select_related('employee'), pk=pk
+        )
+        employee = Employee.objects.select_for_update().get(pk=leave.employee_id)
+        previous_status = leave.status
+        leave_days = leave.duration()
 
     # Determine which leave balance to use
     leave_type_lower = leave.leave_type.lower()
@@ -518,6 +622,9 @@ def leave_process(request, pk, action):
     employee_balance = getattr(employee, balance_field, 0)
 
     if action == "approve":
+        if previous_status == "A":
+            messages.info(request, "This leave request is already approved.")
+            return redirect("hr_leave_list")
         if employee_balance >= leave_days:
             leave.status = "A"
             leave_message = (
@@ -538,6 +645,9 @@ def leave_process(request, pk, action):
             return redirect("hr_leave_list")
 
     elif action == "reject":
+        if previous_status == "A":
+            setattr(employee, balance_field, employee_balance + leave_days)
+            employee.save(update_fields=[balance_field])
         leave.status = "R"
         leave_message = (
             f"Your leave request from {leave.start_date} to {leave.end_date} has been rejected."
@@ -546,6 +656,9 @@ def leave_process(request, pk, action):
         msg_level = messages.ERROR
 
     elif action == "pending":
+        if previous_status == "A":
+            setattr(employee, balance_field, employee_balance + leave_days)
+            employee.save(update_fields=[balance_field])
         leave.status = "P"
         leave_message = (
             f"Your leave request from {leave.start_date} to {leave.end_date} is pending."

@@ -81,7 +81,7 @@
     }
 </style>
 
-<div class="container my-5">
+<div class="container my-4 my-md-5">
 
     <!-- Header -->
     <div class="dashboard-header mb-5 text-center text-md-start">
@@ -158,7 +158,7 @@
                             <td>{{ leave.start_date|date:"M d, Y" }}</td>
                             <td>{{ leave.end_date|date:"M d, Y" }}</td>
                             <td>{{ leave.reason|default:"-" }}</td>
-                            <td class="text-center">
+                            <td class="text-center text-nowrap">
                                 <a href="{% url 'leave_process' leave.pk 'approve' %}" class="btn btn-sm btn-success me-1">Approve</a>
                                 <a href="{% url 'leave_process' leave.pk 'reject' %}" class="btn btn-sm btn-danger">Reject</a>
                             </td>
