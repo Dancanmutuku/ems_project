@@ -10,7 +10,13 @@
         :root {
             --brand: #12355b;
             --brand-dark: #0b2545;
+            --brand-mid: #2d4f73;
             --brand-soft: #e8eef5;
+            --success: #2f6f5e;
+            --warning: #b7791f;
+            --danger: #a33a3a;
+            --info: #4f718b;
+            --neutral: #5f6b7a;
             --page: #f3f6fa;
             --surface: #ffffff;
             --border: #d8dee8;
@@ -25,6 +31,10 @@
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
             background-color: var(--page);
             color: var(--text);
+        }
+
+        .navbar {
+            border-bottom: 3px solid var(--brand-mid);
         }
 
         main {
@@ -67,6 +77,174 @@
         /* Align payroll link to right */
         .navbar-nav.ml-auto, .navbar-nav.ms-auto-right {
             margin-left: auto;
+        }
+
+        .card {
+            border-color: var(--border) !important;
+            border-radius: 8px !important;
+            box-shadow: 0 8px 24px rgba(18, 53, 91, 0.06);
+        }
+
+        .card-header {
+            border-bottom-color: var(--border);
+            font-weight: 600;
+        }
+
+        .bg-primary,
+        .bg-info,
+        .bg-success,
+        .bg-warning {
+            background-color: var(--brand) !important;
+            color: #fff !important;
+        }
+
+        .bg-secondary {
+            background-color: var(--neutral) !important;
+            color: #fff !important;
+        }
+
+        .bg-danger {
+            background-color: var(--danger) !important;
+            color: #fff !important;
+        }
+
+        .text-primary,
+        .text-info {
+            color: var(--brand) !important;
+        }
+
+        .text-success {
+            color: var(--success) !important;
+        }
+
+        .text-warning {
+            color: var(--warning) !important;
+        }
+
+        .text-danger {
+            color: #f1b8b8 !important;
+        }
+
+        main .text-danger {
+            color: var(--danger) !important;
+        }
+
+        .btn {
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .btn-primary,
+        .btn-info,
+        .btn-success,
+        .btn-dark {
+            background-color: var(--brand) !important;
+            border-color: var(--brand) !important;
+            color: #fff !important;
+        }
+
+        .btn-primary:hover,
+        .btn-info:hover,
+        .btn-success:hover,
+        .btn-dark:hover {
+            background-color: var(--brand-dark) !important;
+            border-color: var(--brand-dark) !important;
+        }
+
+        .btn-secondary {
+            background-color: var(--neutral) !important;
+            border-color: var(--neutral) !important;
+            color: #fff !important;
+        }
+
+        .btn-warning {
+            background-color: var(--warning) !important;
+            border-color: var(--warning) !important;
+            color: #fff !important;
+        }
+
+        .btn-danger {
+            background-color: var(--danger) !important;
+            border-color: var(--danger) !important;
+            color: #fff !important;
+        }
+
+        .btn-outline-primary,
+        .btn-outline-info,
+        .btn-outline-success {
+            color: var(--brand) !important;
+            border-color: var(--brand) !important;
+        }
+
+        .btn-outline-primary:hover,
+        .btn-outline-info:hover,
+        .btn-outline-success:hover {
+            background-color: var(--brand) !important;
+            color: #fff !important;
+        }
+
+        .btn-outline-secondary {
+            color: var(--neutral) !important;
+            border-color: var(--neutral) !important;
+        }
+
+        .btn-outline-warning {
+            color: var(--warning) !important;
+            border-color: var(--warning) !important;
+        }
+
+        .btn-outline-danger {
+            color: var(--danger) !important;
+            border-color: var(--danger) !important;
+        }
+
+        .badge {
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .badge.bg-success {
+            background-color: var(--success) !important;
+        }
+
+        .badge.bg-warning {
+            background-color: #f2e8d2 !important;
+            color: #6f4a12 !important;
+            border: 1px solid #e0c184;
+        }
+
+        .badge.bg-danger {
+            background-color: #f1dddd !important;
+            color: #842c2c !important;
+            border: 1px solid #d7a4a4;
+        }
+
+        .badge.bg-primary,
+        .badge.bg-info {
+            background-color: var(--brand-mid) !important;
+        }
+
+        .badge.bg-secondary {
+            background-color: #edf0f3 !important;
+            color: var(--neutral) !important;
+            border: 1px solid var(--border);
+        }
+
+        .table-light th,
+        .table thead th {
+            background-color: #eef2f6 !important;
+            color: var(--text);
+            border-color: var(--border);
+        }
+
+        .nav-tabs .nav-link {
+            color: var(--neutral);
+        }
+
+        .nav-tabs .nav-link.active {
+            color: var(--brand);
+            font-weight: 600;
+            border-color: var(--border) var(--border) var(--surface);
         }
     </style>
     {% block extra_css %}{% endblock %}
