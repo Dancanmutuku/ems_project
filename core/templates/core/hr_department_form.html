@@ -3,21 +3,14 @@
 
 {% block content %}
 <style>
-    /* Modern Form Styling */
     .form-card {
-        border: none;
-        border-radius: 1rem;
+        border: 1px solid #d8dee8;
+        border-radius: 8px;
         overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .form-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
     }
 
     .form-card .card-header {
-        background: linear-gradient(135deg, #007bff, #6610f2);
+        background-color: #12355b;
         color: #fff;
         font-weight: 600;
         text-align: center;
@@ -30,7 +23,7 @@
 
     input.form-control,
     textarea.form-control {
-        border-radius: 0.5rem;
+        border-radius: 6px;
         border: 1px solid #dee2e6;
         box-shadow: none;
         transition: border-color 0.2s ease, box-shadow 0.2s ease;
@@ -38,32 +31,32 @@
 
     input.form-control:focus,
     textarea.form-control:focus {
-        border-color: #007bff;
-        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        border-color: #12355b;
+        box-shadow: 0 0 0 0.2rem rgba(18, 53, 91, 0.14);
     }
 
     .btn {
-        border-radius: 50px;
+        border-radius: 6px;
         padding: 0.5rem 1.2rem;
         font-weight: 500;
     }
 
     .btn-success {
-        background: linear-gradient(135deg, #28a745, #218838);
+        background-color: #1f7a4d;
         border: none;
     }
 
     .btn-success:hover {
-        background: linear-gradient(135deg, #218838, #1e7e34);
+        background-color: #17623d;
     }
 
     .btn-secondary {
-        background: linear-gradient(135deg, #6c757d, #5a6268);
+        background-color: #5f6b7a;
         border: none;
     }
 
     .btn-secondary:hover {
-        background: linear-gradient(135deg, #5a6268, #545b62);
+        background-color: #4f5966;
     }
 
     @media (max-width: 767px) {

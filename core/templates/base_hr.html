@@ -7,12 +7,24 @@
     <title>{% block title %}HR Dashboard{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
+        :root {
+            --brand: #12355b;
+            --brand-dark: #0b2545;
+            --brand-soft: #e8eef5;
+            --page: #f3f6fa;
+            --surface: #ffffff;
+            --border: #d8dee8;
+            --text: #18212f;
+            --muted: #637083;
+        }
+
         body {
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
+            background-color: var(--page);
+            color: var(--text);
         }
 
         main {
@@ -20,14 +32,15 @@
         }
 
         footer {
-            background-color: #212529;
+            background-color: var(--brand-dark);
             color: #fff;
             padding: 1rem 0;
             text-align: center;
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         footer a {
-            color: #0d6efd;
+            color: #b8d7ff;
             text-decoration: none;
         }
 
@@ -43,12 +56,12 @@
         }
 
         .navbar-dark .navbar-nav .nav-link {
-            color: #fff;
+            color: rgba(255, 255, 255, 0.84);
             font-weight: 500;
         }
 
         .navbar-dark .navbar-nav .nav-link:hover {
-            color: #0d6efd;
+            color: #fff;
         }
 
         /* Align payroll link to right */
@@ -61,7 +74,7 @@
 <body>
 
 <!-- Navbar -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top shadow-sm">
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm" style="background-color: var(--brand-dark);">
     <div class="container-fluid">
         <a class="navbar-brand fw-bold" href="{% url 'hr_dashboard' %}">HR Dashboard</a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

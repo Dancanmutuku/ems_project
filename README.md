@@ -30,7 +30,7 @@ In Command Prompt:
 
 ```cmd
 cd C:\Users\dancan.mbuvi\ems_project
-env\Scripts\activate.bat
+venv\Scripts\activate.bat
 ```
 
 ## 4) Install dependencies
@@ -63,7 +63,6 @@ Then open:
 ```text
 http://127.0.0.1:8000/
 ttp://127.0.0.1:8000/hr/login/
-```
 http://127.0.0.1:8000/admin/
 
 ## Optional: create a superuser

@@ -5,24 +5,17 @@
 
 {% block content %}
 <style>
-    /* Modern Leave Request Styles */
     .leave-card {
-        border: none;
-        border-radius: 1rem;
+        border: 1px solid #d8dee8;
+        border-radius: 8px;
         overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .leave-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
     }
 
     .leave-header {
-        background: linear-gradient(135deg, #007bff, #6610f2);
+        background-color: #12355b;
         color: #fff;
         padding: 1rem 1.5rem;
-        border-radius: 1rem 1rem 0 0;
+        border-radius: 8px 8px 0 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -36,32 +29,31 @@
     }
 
     .btn-add {
-        background: linear-gradient(135deg, #28a745, #218838);
+        background-color: #1f7a4d;
         border: none;
-        border-radius: 50px;
+        border-radius: 6px;
         font-weight: 500;
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease;
     }
 
     .btn-add:hover {
-        background: linear-gradient(135deg, #218838, #1e7e34);
-        transform: translateY(-2px);
+        background-color: #17623d;
     }
 
     .filter-select {
-        border-radius: 50px;
+        border-radius: 6px;
         padding: 0.5rem 1rem;
         border-color: #ced4da;
         transition: all 0.2s;
     }
 
     .filter-select:focus {
-        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-        border-color: #007bff;
+        box-shadow: 0 0 0 0.2rem rgba(18, 53, 91, 0.14);
+        border-color: #12355b;
     }
 
     .table-modern th {
-        background-color: #343a40 !important;
+        background-color: #0b2545 !important;
         color: #fff;
         font-weight: 600;
         text-align: center;
@@ -73,20 +65,16 @@
     }
 
     .badge {
-        border-radius: 50px;
+        border-radius: 6px;
         font-size: 0.85rem;
         padding: 0.4rem 0.8rem;
     }
 
     .btn-group-sm .btn {
         border: none;
-        border-radius: 50px;
+        border-radius: 6px;
         font-weight: 500;
-        transition: 0.2s ease;
-    }
-
-    .btn-group-sm .btn:hover {
-        transform: scale(1.05);
+        transition: background-color 0.2s ease;
     }
 
     @media (max-width: 768px) {
@@ -105,7 +93,7 @@
         <div class="leave-header">
             <h4>Leave Requests</h4>
             <!-- Optional Apply Button -->
-            <!-- <a href="{% url 'leave_request_create' %}" class="btn btn-add">➕ Apply Leave</a> -->
+            <!-- <a href="{% url 'leave_request_create' %}" class="btn btn-add">Apply Leave</a> -->
         </div>
 
         <div class="card-body">
@@ -146,7 +134,7 @@
                                 <td>{{ leave.employee.department.name }}</td>
                                 <td>{{ leave.start_date|date:"M d, Y" }}</td>
                                 <td>{{ leave.end_date|date:"M d, Y" }}</td>
-                                <td>{{ leave.reason|default:"—" }}</td>
+                                <td>{{ leave.reason|default:"-" }}</td>
                                 <td>
                                     {% if leave.status == "P" %}
                                         <span class="badge bg-warning text-dark">Pending</span>

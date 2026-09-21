@@ -2,24 +2,17 @@
 
 {% block content %}
 <style>
-    /* Modern Department List Styles */
     .departments-card {
-        border: none;
-        border-radius: 1rem;
+        border: 1px solid #d8dee8;
+        border-radius: 8px;
         overflow: hidden;
-        transition: all 0.3s ease;
-    }
-
-    .departments-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
     }
 
     .departments-header {
-        background: linear-gradient(135deg, #007bff, #6610f2);
+        background-color: #12355b;
         color: #fff;
         padding: 1rem 1.5rem;
-        border-radius: 1rem 1rem 0 0;
+        border-radius: 8px 8px 0 0;
         display: flex;
         justify-content: space-between;
         align-items: center;
@@ -31,16 +24,18 @@
     }
 
     .btn-add {
-        background: linear-gradient(135deg, #28a745, #218838);
+        background-color: #1f7a4d;
         border: none;
-        border-radius: 50px;
+        border-radius: 6px;
+        color: #fff;
         font-weight: 500;
-        transition: all 0.2s ease;
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
     }
 
     .btn-add:hover {
-        background: linear-gradient(135deg, #218838, #1e7e34);
-        transform: translateY(-2px);
+        background-color: #17623d;
+        color: #fff;
+        box-shadow: 0 8px 18px rgba(31, 122, 77, 0.16);
     }
 
     .table-modern {
@@ -49,7 +44,7 @@
     }
 
     .table-modern th {
-        background-color: #343a40 !important;
+        background-color: #0b2545 !important;
         color: #fff;
         font-weight: 600;
         vertical-align: middle;
@@ -61,22 +56,20 @@
 
     .btn-warning, .btn-danger {
         border: none;
-        border-radius: 50px;
+        border-radius: 6px;
         padding: 0.3rem 0.9rem;
         font-weight: 500;
-        transition: 0.2s ease;
+        transition: background-color 0.2s ease, color 0.2s ease;
     }
 
     .btn-warning:hover {
         background-color: #e0a800;
         color: #fff;
-        transform: scale(1.05);
     }
 
     .btn-danger:hover {
         background-color: #c82333;
         color: #fff;
-        transform: scale(1.05);
     }
 
     @media (max-width: 767px) {
@@ -95,7 +88,7 @@
     <div class="card departments-card shadow-sm">
         <div class="departments-header">
             <h4>Departments</h4>
-            <a href="{% url 'hr_department_create' %}" class="btn btn-add">➕ Add Department</a>
+            <a href="{% url 'hr_department_create' %}" class="btn btn-add">Add Department</a>
         </div>
 
         <div class="card-body p-0">
@@ -113,7 +106,7 @@
                         {% for dept in departments %}
                         <tr>
                             <td>{{ dept.name }}</td>
-                            <td>{{ dept.description|default:"—" }}</td>
+                            <td>{{ dept.description|default:"-" }}</td>
                             <td class="text-center">
                                 <a href="{% url 'hr_department_edit' dept.pk %}" class="btn btn-sm btn-warning me-1">Edit</a>
                                 <a href="{% url 'hr_department_delete' dept.pk %}" class="btn btn-sm btn-danger">Delete</a>
